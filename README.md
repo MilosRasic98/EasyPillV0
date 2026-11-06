@@ -16,10 +16,8 @@ GUI served by the ESP32 itself.
 
 ## Status: running on the first board, partly proven
 
-This section used to say the firmware had never been on hardware. As of
-**2026-11-02** it has, on a XIAO ESP32-C3 on the V1 PCB. Keeping the distinction
-between measured and predicted is still the point of this section, because
-plenty is still predicted.
+Running on the first XIAO ESP32-C3 on the V1 PCB since **2026-11-02**. Plenty
+of it is still prediction, which is what the two lists below keep apart.
 
 **Measured on the board:**
 
@@ -100,18 +98,9 @@ Build from inside `firmware/`.
 
 ```bash
 cd firmware
-```
-
-```bash
-pio run -e bringup-c3 -t upload
-```
-
-```bash
-pio device monitor -e bringup-c3
-```
-
-```bash
-pio run -e app-c3 -t upload
+pio run -e bringup-c3 -t upload      # the test harness goes on first
+pio device monitor -e bringup-c3     # drive it over USB-CDC
+pio run -e app-c3 -t upload          # then the real firmware
 ```
 
 Swap `-c3` for `-s3` throughout on an S3.
@@ -205,11 +194,6 @@ while the box is awake; the notifications work regardless.
 docs/            HARDWARE.md and API.md are the contracts; the rest explains them
 hardware/
   schematics/    the V1 schematic and its review: the origin of every constraint
-  cad/           enclosure and tray CAD
-media/
-  photos/        build and bring-up photographs
-  video/         footage for the write-up - read media/README.md before
-                 committing anything large, GitHub rejects files over 100 MB
 firmware/
   platformio.ini four envs: bringup-{c3,s3}, app-{c3,s3}
   include/
@@ -269,7 +253,7 @@ board:
 tests/run_core_tests.sh
 ```
 
-It prints `551 checks, 0 failures`. `tools/check.sh core` runs the same thing,
+It prints `556 checks, 0 failures`. `tools/check.sh core` runs the same thing,
 and `tools/check.sh` on its own also builds all four firmware targets and
 regenerates the embedded web assets.
 
@@ -280,7 +264,7 @@ C++17 host toolchain and exits non-zero on the first failure. If you change
 `docs/API.md`, three implementations have to change with it: the firmware, the
 simulator and the GUI.
 
-That last sentence is the whole reason for the third check:
+The third check is there for exactly that:
 
 ```bash
 tools/check.sh parity
@@ -292,9 +276,9 @@ counts as missed, what the boot floor hides — and diffs the two reports. It
 prints `10246 answers, firmware and simulator agree`, or the lines where they
 do not.
 
-This matters more than it sounds. The simulator is how the box gets
-demonstrated and tuned with nothing on the desk, so a divergence does not just
-produce a wrong number: it teaches you something false about your own device.
+The simulator is how the box gets demonstrated and tuned with nothing on the
+desk, so a divergence does not just produce a wrong number: it teaches you
+something false about your own device.
 Of the 87 defects the first review turned up, 28 were exactly that, and nothing
 else in the tree notices when the two drift apart. Adding a question means
 adding it to both `tests/parity/parity_driver.cpp` and
@@ -305,11 +289,8 @@ output to keep up to date.
 
 ## Licence and provenance
 
-**No licence has been chosen yet.** That is a decision, not an oversight to read
-past: published code with no licence is "all rights reserved" by default, so
-nobody may legally reuse it even though they can read it. If this repository is
-meant to be useful to other people, it needs a `LICENSE` file — MIT or Apache-2.0
-for the permissive end, GPL-3.0 if derivatives should stay open.
+No licence yet, so it is all rights reserved by default: readable, not
+reusable. Needs settling before this goes public.
 
 Single-unit personal project; the hardware notes in `docs/HARDWARE.md` come from
 `hardware/schematics/Schematic_EaSyPill_V1_2026-09-27.pdf` and the schematic

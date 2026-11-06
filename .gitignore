@@ -4,32 +4,19 @@ tests/**/build/
 *.o
 *.elf
 
-# Generated at build time, both of them, by firmware/tools/gen_*.py.
-# build_stamp.h is a property of one build on one machine, so it is never
-# committed. web_assets.h IS committed: it is the GUI baked into the image, and
-# a checkout has to build without a working Python to regenerate it.
+# Rewritten on every build by firmware/tools/gen_build_stamp.py, so it belongs
+# to one build on one machine. web_assets.h next to it IS committed on purpose:
+# a checkout has to build without a working Python to regenerate the GUI.
 firmware/src/app/build_stamp.h
 
-# Real Wi-Fi credentials in clear text. The template beside it
-# (wifi_default.example.h) is tracked; this file never is. See the Quick start
-# in README.md, step 4. If this file has ever been pushed, the password in it
-# should be treated as public and changed on the router.
+# Real Wi-Fi credentials in clear text. wifi_default.example.h beside it is the
+# tracked template.
 firmware/include/wifi_default.h
 
-# Local editor and tooling state
+# Editor and OS scratch
 .vscode/
 .idea/
-
-# macOS, Windows, and CAD package scratch files
 .DS_Store
 ._*
-Thumbs.db
-~$*
 *.tmp
 *.bak
-*.autosave
-
-# Large media does not belong in normal git history - see media/README.md.
-# Nothing here is ignored by default, because the photos and the CAD are part of
-# the project; this is the reminder to set Git LFS up BEFORE the first commit of
-# anything large, since files committed beforehand are not moved retroactively.
