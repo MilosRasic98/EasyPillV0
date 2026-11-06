@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- color-scheme before any CSS so the UA paints the right canvas on the first frame -->
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1216" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-title" content="EasyPill">
+<title>EasyPill</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- Icon sprite. Inline because the box may have no internet and we serve four
+     files only; <use> keeps us off innerHTML for anything server-derived. -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+<symbol id="i-pill" viewBox="0 0 24 24"><path d="M10.5 20.5 20 11a4.95 4.95 0 1 0-7-7L3.5 13.5a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6.5V12l4 2.5"/></symbol>
+<symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+<symbol id="i-ff" viewBox="0 0 24 24"><path d="M5 6l6 6-6 6M13 6l6 6-6 6"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M6 10v10h12V10"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M7 16v-4M12 16V7M17 16v-6"/></symbol>
+<symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h8M17 7h3M4 17h3M12 17h8"/><circle cx="14.5" cy="7" r="2.5"/><circle cx="9.5" cy="17" r="2.5"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z"/><path d="M9.5 19a2.5 2.5 0 0 0 5 0"/></symbol>
+<symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20h4L19.5 8.5l-4-4L4 16Z"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9.5 7V4.5h5V7"/><path d="M6.5 7l1 13h9l1-13"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5h10"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4h-4"/></symbol>
+<symbol id="i-power" viewBox="0 0 24 24"><path d="M12 4v8"/><path d="M7.4 7a6.5 6.5 0 1 0 9.2 0"/></symbol>
+<symbol id="i-speaker" viewBox="0 0 24 24"><path d="M4 9.5h3L12 5v14l-5-4.5H4Z"/><path d="M16 9.5a4 4 0 0 1 0 5"/></symbol>
+<symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9.5 20h5"/><path d="M12 3a6 6 0 0 1 3 11v2.5H9V14a6 6 0 0 1 3-11Z"/></symbol>
+<symbol id="i-wifi" viewBox="0 0 24 24"><path d="M3.5 9.5a13 13 0 0 1 17 0"/><path d="M7 13a8.5 8.5 0 0 1 10 0"/><path d="M10 16.4a4 4 0 0 1 4 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-battery" viewBox="0 0 24 24"><rect x="2" y="7.5" width="17" height="9" rx="2.5"/><path d="M21.5 11v2"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3L6 14h5l-1 7 7-11h-5Z"/></symbol>
+<symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5"/><path d="M7 8h10v3a5 5 0 0 1-10 0Z"/><path d="M12 16v5"/></symbol>
+<symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4l9.5 16.5H2.5Z"/><path d="M12 10v4"/><circle cx="12" cy="17.3" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="8" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+<symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6"/><path d="M10 3v5l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 17l-5-9V3"/><path d="M6.8 14h10.4"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.2 16.2L21 21"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></symbol>
+</svg>
+
+<div id="banner" class="banner" role="status" hidden>
+  <svg class="i" aria-hidden="true"><use href="#i-warn"/></svg>
+  <span id="bannerTxt">Lost contact with the box.</span>
+  <button class="btn btn--tiny" id="bannerRetry" type="button">Retry now</button>
+</div>
+
+<header class="top">
+  <div class="brand">
+    <svg class="brand__i" aria-hidden="true"><use href="#i-pill"/></svg>
+    <div class="brand__names">
+      <h1 id="devName">EasyPill</h1>
+      <p class="brand__sub" id="patientName"></p>
+    </div>
+    <a class="badge badge--sim" id="simBadge" href="#sim" hidden>Simulated</a>
+  </div>
+  <div class="strip" id="strip">
+    <div class="strip__it" id="sClock"><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg><span class="strip__v">--:--</span></div>
+    <div class="strip__it" id="sBatt"><svg class="i" aria-hidden="true"><use href="#i-battery"/></svg><span class="strip__v">--</span></div>
+    <div class="strip__it" id="sChg"><svg class="i" aria-hidden="true"><use href="#i-plug"/></svg><span class="strip__v">--</span></div>
+    <div class="strip__it" id="sWifi"><svg class="i" aria-hidden="true"><use href="#i-wifi"/></svg><span class="strip__v">--</span></div>
+    <div class="strip__it strip__it--age" id="sAge"><span class="dot"></span><span class="strip__v">--</span></div>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Views">
+  <button class="tab" role="tab" type="button" id="tab-now" data-view="now" aria-controls="v-now" aria-selected="true"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg><span>Now</span></button>
+  <button class="tab" role="tab" type="button" id="tab-schedule" data-view="schedule" aria-controls="v-schedule" aria-selected="false" tabindex="-1"><svg class="i" aria-hidden="true"><use href="#i-grid"/></svg><span>Schedule</span></button>
+  <button class="tab" role="tab" type="button" id="tab-history" data-view="history" aria-controls="v-history" aria-selected="false" tabindex="-1"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg><span>History</span></button>
+  <button class="tab" role="tab" type="button" id="tab-settings" data-view="settings" aria-controls="v-settings" aria-selected="false" tabindex="-1"><svg class="i" aria-hidden="true"><use href="#i-sliders"/></svg><span>Settings</span></button>
+  <button class="tab" role="tab" type="button" id="tab-notify" data-view="notify" aria-controls="v-notify" aria-selected="false" tabindex="-1"><svg class="i" aria-hidden="true"><use href="#i-bell"/></svg><span>Alerts</span></button>
+</nav>
+
+<main id="main">
+
+<!-- ========================= NOW ========================= -->
+<section class="view" id="v-now" role="tabpanel" aria-labelledby="tab-now" tabindex="0">
+
+  <article class="card next" id="next">
+    <div class="next__head">
+      <span class="eyebrow">Next dose</span>
+      <span class="next__when" id="nextWhen"></span>
+    </div>
+    <div class="next__grid">
+      <div>
+        <p class="next__label" id="nextLabel">&mdash;</p>
+        <ul class="pills" id="nextPills"></ul>
+      </div>
+      <div class="next__lid">
+        <span class="eyebrow">Lid to open</span>
+        <strong id="nextLidName">&mdash;</strong>
+        <span class="mono" id="nextAt"></span>
+      </div>
+    </div>
+    <div class="next__foot">
+      <span class="count" id="nextCountdown">&mdash;</span>
+      <span class="muted" id="nextSub"></span>
+    </div>
+  </article>
+
+  <h2 class="h">The seven lids</h2>
+  <div class="lids" id="lids"></div>
+
+  <section class="card sim" id="sim" hidden aria-labelledby="simH">
+    <header class="sim__head">
+      <svg class="i i--lg" aria-hidden="true"><use href="#i-flask"/></svg>
+      <div>
+        <h2 id="simH">Simulator controls</h2>
+        <p class="muted">No board attached. Everything below fakes hardware so the whole workflow can be demonstrated from the desk.</p>
+      </div>
+    </header>
+    <div class="sim__lids" id="simLids"></div>
+    <div class="sim__rows">
+      <div class="sim__row">
+        <span class="sim__lbl">Button</span>
+        <div class="btnrow">
+          <button class="btn" type="button" data-sim="press">Short press</button>
+          <button class="btn" type="button" data-sim="hold">Hold 3 s</button>
+        </div>
+      </div>
+      <div class="sim__row">
+        <label class="sim__lbl" for="simV">Battery</label>
+        <div class="slide">
+          <input type="range" id="simV" min="3200" max="4200" step="10" value="3900">
+          <output class="mono" id="simVOut">3.90 V</output>
+        </div>
+      </div>
+      <div class="sim__row">
+        <span class="sim__lbl">Chargers</span>
+        <div class="btnrow">
+          <label class="sw"><input type="checkbox" id="simUsb"><span>USB 5 V</span></label>
+          <label class="sw"><input type="checkbox" id="simCoil"><span>Wireless coil</span></label>
+        </div>
+      </div>
+      <div class="sim__row">
+        <span class="sim__lbl">Time scale</span>
+        <div class="seg seg--sm" id="simScale" role="group" aria-label="Time scale">
+          <button type="button" data-ts="1">1&times;</button>
+          <button type="button" data-ts="60">60&times;</button>
+          <button type="button" data-ts="600">600&times;</button>
+          <button type="button" data-ts="3600">3600&times;</button>
+        </div>
+      </div>
+      <div class="sim__row">
+        <span class="sim__lbl">Jump</span>
+        <div class="btnrow">
+          <button class="btn" type="button" data-sim="h1">+1 hour</button>
+          <button class="btn" type="button" data-sim="d1">+1 day</button>
+          <button class="btn" type="button" data-sim="nextdose">To two minutes before the next dose</button>
+          <button class="btn btn--danger-ghost" type="button" data-sim="reset">Reset simulator</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <h2 class="h">Today<span class="h__sub" id="todaySub"></span></h2>
+  <ol class="tl" id="timeline"></ol>
+
+  <h2 class="h">Activity</h2>
+  <ul class="feed" id="feed" aria-live="polite" aria-relevant="additions"></ul>
+  <div class="btnrow btnrow--end">
+    <button class="btn btn--ghost" type="button" id="moreEvents">Load older events</button>
+  </div>
+</section>
+
+<!-- ======================= SCHEDULE ======================= -->
+<section class="view" id="v-schedule" role="tabpanel" aria-labelledby="tab-schedule" tabindex="0" hidden>
+  <div class="chips" id="schedSum"></div>
+
+  <article class="card">
+    <div class="card__head">
+      <h2>Week</h2>
+      <div class="btnrow">
+        <button class="btn" type="button" id="btnBulk"><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg><span>Apply across days</span></button>
+        <button class="btn" type="button" id="btnCopyDay"><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg><span>Copy a day</span></button>
+      </div>
+    </div>
+    <p class="muted">Each lid holds up to four doses. Tap a dose to edit it, or an empty slot to add one.</p>
+    <div class="gridwrap">
+      <table class="week">
+        <caption class="sr">Doses per lid</caption>
+        <thead><tr><th scope="col">Lid</th><th scope="col">Dose 1</th><th scope="col">Dose 2</th><th scope="col">Dose 3</th><th scope="col">Dose 4</th></tr></thead>
+        <tbody id="weekBody"></tbody>
+      </table>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="card__head"><h2>Timing rules</h2></div>
+    <p class="muted">A lid opened inside the window counts for that dose. Outside it, the box records an early or late open instead.</p>
+    <div class="form form--2">
+      <p class="field"><label for="wB">Window before (min)</label><input type="number" id="wB" min="0" max="720" step="5" data-sck="windowBeforeMin"></p>
+      <p class="field"><label for="wA">Window after (min)</label><input type="number" id="wA" min="0" max="720" step="5" data-sck="windowAfterMin"></p>
+      <p class="field"><label for="wG">Grace before "missed" (min)</label><input type="number" id="wG" min="0" max="720" step="5" data-sck="missedGraceMin"></p>
+      <p class="field"><label for="wR">Remind before (min, 0 = off)</label><input type="number" id="wR" min="0" max="720" step="5" data-sck="remindBeforeMin"></p>
+    </div>
+    <div class="btnrow btnrow--end"><button class="btn btn--primary" type="button" id="btnSaveRules">Save timing rules</button></div>
+  </article>
+</section>
+
+<!-- ======================== HISTORY ======================= -->
+<section class="view" id="v-history" role="tabpanel" aria-labelledby="tab-history" tabindex="0" hidden>
+  <div class="chips" id="histStats"></div>
+
+  <article class="card">
+    <div class="card__head">
+      <h2>Adherence</h2>
+      <div class="btnrow">
+        <label class="inline" for="histDays">Range</label>
+        <select id="histDays">
+          <option value="7">7 days</option>
+          <option value="14" selected>14 days</option>
+          <option value="28">28 days</option>
+        </select>
+        <button class="btn" type="button" id="histReload"><svg class="i" aria-hidden="true"><use href="#i-refresh"/></svg><span>Refresh</span></button>
+      </div>
+    </div>
+    <p class="lede" id="histSummary"></p>
+    <div class="gridwrap">
+      <table class="cal">
+        <caption class="sr">Doses per day</caption>
+        <thead><tr><th scope="col">Mon</th><th scope="col">Tue</th><th scope="col">Wed</th><th scope="col">Thu</th><th scope="col">Fri</th><th scope="col">Sat</th><th scope="col">Sun</th></tr></thead>
+        <tbody id="calBody"></tbody>
+      </table>
+    </div>
+    <ul class="legend" id="legend"></ul>
+    <div class="detail" id="histDetail" hidden></div>
+  </article>
+</section>
+
+<!-- ======================= SETTINGS ======================= -->
+<section class="view" id="v-settings" role="tabpanel" aria-labelledby="tab-settings" tabindex="0" hidden>
+
+  <article class="card">
+    <div class="card__head"><h2>Device</h2></div>
+    <div class="form form--2">
+      <p class="field"><label for="uiName">Device name</label><input id="uiName" type="text" maxlength="31" data-k="ui.deviceName" autocomplete="off"><span class="hint">Shown here and in notifications.</span></p>
+      <p class="field"><label for="uiPatient">Who it is for</label><input id="uiPatient" type="text" maxlength="31" data-k="ui.patientName" autocomplete="off"><span class="hint">Used in the notification text.</span></p>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="card__head"><h2>Wi-Fi</h2>
+      <button class="btn" type="button" id="btnScan"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg><span>Scan</span></button>
+    </div>
+    <div class="netlist" id="netList" hidden></div>
+    <div class="form form--2">
+      <p class="field"><label for="wSsid">Network name</label><input id="wSsid" type="text" maxlength="32" data-k="wifi.ssid" autocomplete="off" spellcheck="false"></p>
+      <p class="field"><label for="wPass">Password</label><span class="secret"><input id="wPass" type="password" maxlength="64" data-k="wifi.pass" data-secret autocomplete="new-password"><button class="btn btn--tiny" type="button" data-clear="wPass">Clear</button></span></p>
+      <p class="field"><label for="wHost">Hostname</label><input id="wHost" type="text" maxlength="31" data-k="wifi.hostname" autocomplete="off" spellcheck="false"><span class="hint">Reachable as http://<span id="hostEcho">easypill</span>.local</span></p>
+      <p class="field"><label for="wApPass">Setup-AP password</label><span class="secret"><input id="wApPass" type="password" maxlength="64" data-k="wifi.apPassword" data-secret autocomplete="new-password"><button class="btn btn--tiny" type="button" data-clear="wApPass">Clear</button></span><span class="hint">Eight characters or more, otherwise the fallback AP comes up open.</span></p>
+    </div>
+    <label class="sw"><input type="checkbox" id="wAp" data-k="wifi.apFallback"><span>Start a setup access point when it cannot join</span></label>
+    <div class="btnrow btnrow--end"><button class="btn" type="button" id="btnConnect">Connect to this network now</button></div>
+  </article>
+
+  <article class="card">
+    <div class="card__head"><h2>Time</h2>
+      <button class="btn" type="button" data-act="syncTime"><svg class="i" aria-hidden="true"><use href="#i-refresh"/></svg><span>Sync now</span></button>
+    </div>
+    <p class="muted">There is no battery-backed clock in the box. It sets itself from the internet whenever Wi-Fi comes up and measures its own drift in between, so the clock needs a network now and then to stay honest.</p>
+    <div class="form form--2">
+      <p class="field"><label for="tTz">Time zone (POSIX TZ)</label><input id="tTz" type="text" maxlength="63" list="tzList" data-k="time.tz" spellcheck="false" autocomplete="off">
+        <datalist id="tzList">
+          <option value="CET-1CEST,M3.5.0,M10.5.0/3">Central Europe — Belgrade, Berlin, Paris</option>
+          <option value="EET-2EEST,M3.5.0/3,M10.5.0/4">Eastern Europe — Athens, Helsinki</option>
+          <option value="GMT0BST,M3.5.0/1,M10.5.0">United Kingdom — London</option>
+          <option value="EST5EDT,M3.2.0,M11.1.0">US Eastern — New York</option>
+          <option value="CST6CDT,M3.2.0,M11.1.0">US Central — Chicago</option>
+          <option value="MST7MDT,M3.2.0,M11.1.0">US Mountain — Denver</option>
+          <option value="PST8PDT,M3.2.0,M11.1.0">US Pacific — Los Angeles</option>
+          <option value="AEST-10AEDT,M10.1.0,M4.1.0/3">Australia Eastern — Sydney</option>
+          <option value="IST-5:30">India — Kolkata</option>
+          <option value="JST-9">Japan — Tokyo</option>
+          <option value="UTC0">UTC, no daylight saving</option>
+        </datalist>
+      </p>
+      <p class="field"><label for="tResync">Re-sync every (seconds)</label><input id="tResync" type="number" min="300" max="604800" step="300" data-k="time.resyncIntervalSec" data-t="n"></p>
+      <p class="field"><label for="tN1">NTP server 1</label><input id="tN1" type="text" maxlength="47" data-k="time.ntp1" spellcheck="false" autocomplete="off"></p>
+      <p class="field"><label for="tN2">NTP server 2</label><input id="tN2" type="text" maxlength="47" data-k="time.ntp2" spellcheck="false" autocomplete="off"></p>
+    </div>
+    <dl class="ro" id="timeRo"></dl>
+  </article>
+
+  <article class="card">
+    <div class="card__head"><h2>Notifications</h2>
+      <button class="btn" type="button" id="btnGoNotify">Open the setup walkthrough</button>
+    </div>
+    <label class="sw"><input type="checkbox" id="nEn" data-k="notify.ntfyEnabled"><span>ntfy (recommended — phone and iPad push)</span></label>
+    <label class="sw"><input type="checkbox" id="pEn" data-k="notify.pushoverEnabled"><span>Pushover</span></label>
+    <label class="sw"><input type="checkbox" id="hEn" data-k="notify.webhookEnabled"><span>Webhook</span></label>
+    <p class="muted">Which events are sent, quiet hours and the topic itself live in the Alerts tab.</p>
+  </article>
+
+  <article class="card">
+    <div class="card__head"><h2>Power and sleep</h2></div>
+    <div class="form form--2">
+      <p class="field"><label for="pPolicy">Sleep policy</label><select id="pPolicy" data-k="power.policy">
+        <option value="alwaysOn">Always on — bench and filming</option>
+        <option value="smart">Smart — awake on USB, sleeps on battery</option>
+        <option value="aggressive">Aggressive — sleeps as soon as it can</option>
+      </select></p>
+      <p class="field"><label for="pAwake">Stay awake after an event (s)</label><input id="pAwake" type="number" min="0" max="65535" step="30" data-k="power.awakeAfterEventSec" data-t="n"><span class="hint">How long the GUI stays reachable after a lid moves.</span></p>
+      <p class="field"><label for="pWake">Wake interval while asleep (s)</label><input id="pWake" type="number" min="30" max="65535" step="30" data-k="power.wakeIntervalSec" data-t="n"></p>
+      <p class="field"><label for="pLow">Low battery warning (mV)</label><input id="pLow" type="number" min="3000" max="4200" step="10" data-k="power.lowBatteryMv" data-t="n"></p>
+      <p class="field"><label for="pCrit">Cut-off, drops the latch (mV)</label><input id="pCrit" type="number" min="3000" max="4200" step="10" data-k="power.criticalBatteryMv" data-t="n"><span class="hint">3300 mV protects the cell; the hardware trip at 2500 mV is far too low to still run Wi-Fi.</span></p>
+    </div>
+    <label class="sw"><input type="checkbox" id="pBuz" data-k="power.buzzerOnReminder"><span>Chirp the buzzer on a reminder</span></label>
+    <label class="sw"><input type="checkbox" id="pLed" data-k="power.ledOnReminder"><span>Light the LED on a reminder</span></label>
+  </article>
+
+  <article class="card">
+    <div class="card__head"><h2>Hardware</h2></div>
+    <label class="sw"><input type="checkbox" id="uiAdv" data-k="ui.showAdvanced"><span>Show advanced hardware settings</span></label>
+    <div id="advWrap" hidden>
+      <p class="muted">These follow the board, not the person. Changing them wrongly makes the box read lids backwards.</p>
+      <h3>Hall sensors</h3>
+      <label class="sw"><input type="checkbox" id="hLow" data-k="hw.hallClosedIsLow"><span>A closed lid reads LOW (magnet over the sensor)</span></label>
+      <fieldset class="bits"><legend>Invert an individual sensor</legend><div class="bits__row" id="hInv"></div></fieldset>
+      <fieldset class="maprow"><legend>Which lid each sensor sits under</legend><div class="maprow__row" id="hMap"></div></fieldset>
+      <div class="form form--2">
+        <p class="field"><label for="hDeb">Lid debounce (ms)</label><input id="hDeb" type="number" min="0" max="5000" step="10" data-k="hw.hallDebounceMs" data-t="n"></p>
+        <p class="field"><label for="bDeb">Button debounce (ms)</label><input id="bDeb" type="number" min="0" max="5000" step="10" data-k="hw.buttonDebounceMs" data-t="n"></p>
+      </div>
+      <h3>LED and buzzer</h3>
+      <div class="form form--3">
+        <p class="field"><label for="lR">Red channel</label><select id="lR" data-k="hw.ledChannelRed" data-t="n" data-opts="ch"></select></p>
+        <p class="field"><label for="lG">Green channel</label><select id="lG" data-k="hw.ledChannelGreen" data-t="n" data-opts="ch"></select></p>
+        <p class="field"><label for="lB">Blue channel</label><select id="lB" data-k="hw.ledChannelBlue" data-t="n" data-opts="ch"></select></p>
+        <p class="field"><label for="lBr">LED brightness</label><input id="lBr" type="number" min="0" max="255" data-k="hw.ledBrightness" data-t="n"></p>
+        <p class="field"><label for="bCh">Buzzer channel</label><select id="bCh" data-k="hw.buzzerChannel" data-t="n" data-opts="ch"></select></p>
+        <p class="field"><label for="bHz">Buzzer tone (Hz)</label><input id="bHz" type="number" min="100" max="20000" step="10" data-k="hw.buzzerToneHz" data-t="n"></p>
+      </div>
+      <label class="sw"><input type="checkbox" id="bSelf" data-k="hw.buzzerSelfDrive"><span>Self-oscillating piezo (DC only, no tone needed)</span></label>
+      <h3>Analog scaling</h3>
+      <p class="muted">Millivolts at the pin &times; numerator &divide; denominator = millivolts at the source.</p>
+      <div class="form form--3">
+        <p class="field"><label for="vN">VBAT numerator</label><input id="vN" type="number" min="1" max="65535" data-k="hw.vbatDivNum" data-t="n"></p>
+        <p class="field"><label for="vD">VBAT denominator</label><input id="vD" type="number" min="1" max="65535" data-k="hw.vbatDivDen" data-t="n"></p>
+        <p class="field"><label for="rN">Rail numerator</label><input id="rN" type="number" min="1" max="65535" data-k="hw.railDivNum" data-t="n"></p>
+        <p class="field"><label for="rD">Rail denominator</label><input id="rD" type="number" min="1" max="65535" data-k="hw.railDivDen" data-t="n"></p>
+        <p class="field"><label for="btN">Button numerator</label><input id="btN" type="number" min="1" max="65535" data-k="hw.buttonDivNum" data-t="n"></p>
+        <p class="field"><label for="btD">Button denominator</label><input id="btD" type="number" min="1" max="65535" data-k="hw.buttonDivDen" data-t="n"></p>
+        <p class="field"><label for="btTh">Button threshold (mV)</label><input id="btTh" type="number" min="0" max="5000" step="10" data-k="hw.buttonThresholdMv" data-t="n"></p>
+        <p class="field"><label for="stTh">Charger STAT threshold (mV)</label><input id="stTh" type="number" min="0" max="5000" step="10" data-k="hw.statThresholdMv" data-t="n"></p>
+      </div>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="card__head"><h2>Actions</h2></div>
+    <div class="acts">
+      <button class="btn" type="button" data-act="beep"><svg class="i" aria-hidden="true"><use href="#i-speaker"/></svg><span>Beep</span></button>
+      <button class="btn" type="button" data-act="led"><svg class="i" aria-hidden="true"><use href="#i-bulb"/></svg><span>LED test</span></button>
+      <button class="btn" type="button" data-act="identifyLed"><svg class="i" aria-hidden="true"><use href="#i-bulb"/></svg><span>Identify LED channels</span></button>
+      <button class="btn" type="button" data-act="calibrateHalls"><svg class="i" aria-hidden="true"><use href="#i-sliders"/></svg><span>Calibrate lid sensors</span></button>
+      <button class="btn" type="button" data-act="syncTime"><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg><span>Sync time</span></button>
+      <button class="btn" type="button" data-act="testNotify"><svg class="i" aria-hidden="true"><use href="#i-bell"/></svg><span>Test notification</span></button>
+      <button class="btn btn--danger-ghost" type="button" data-act="clearEvents"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg><span>Clear event log</span></button>
+      <button class="btn btn--danger-ghost" type="button" data-act="clearHistory"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg><span>Clear dose history</span></button>
+      <button class="btn btn--danger-ghost" type="button" data-act="reboot"><svg class="i" aria-hidden="true"><use href="#i-refresh"/></svg><span>Reboot</span></button>
+      <button class="btn btn--danger-ghost" type="button" data-act="powerOff"><svg class="i" aria-hidden="true"><use href="#i-power"/></svg><span>Power off</span></button>
+      <button class="btn btn--danger" type="button" data-act="factoryReset"><svg class="i" aria-hidden="true"><use href="#i-warn"/></svg><span>Factory reset</span></button>
+    </div>
+    <pre class="out" id="actOut" hidden></pre>
+  </article>
+
+  <article class="card">
+    <div class="card__head"><h2>About this box</h2></div>
+    <dl class="ro" id="infoRo"></dl>
+  </article>
+</section>
+
+<!-- ===================== NOTIFICATIONS ==================== -->
+<section class="view" id="v-notify" role="tabpanel" aria-labelledby="tab-notify" tabindex="0" hidden>
+
+  <article class="card">
+    <div class="card__head"><h2>Push notifications with ntfy</h2></div>
+    <p class="lede">ntfy is a free push service: the box posts a short message to a named topic, and every phone or tablet subscribed to that topic shows a notification. There is no account to make and no key to copy &mdash; the topic name is the only thing that links the box to your family's devices.</p>
+    <ol class="steps">
+      <li><strong>Install the app.</strong> <em>ntfy</em> on the App Store for iPhone and iPad, or <em>ntfy</em> on Google Play or F-Droid for Android. A browser at ntfy.sh works too.</li>
+      <li><strong>Pick a topic below</strong> and save it.</li>
+      <li><strong>Subscribe</strong> the app to that exact topic, then send the test notification.</li>
+    </ol>
+
+    <div class="warnbox">
+      <svg class="i i--lg" aria-hidden="true"><use href="#i-warn"/></svg>
+      <p>On the public server the topic name <strong>is</strong> the password. Anyone who guesses it reads every notification about the medication. Use the generated name, not <em>grandma</em>.</p>
+    </div>
+
+    <label class="sw"><input type="checkbox" id="nEn2" data-k="notify.ntfyEnabled"><span>Send notifications through ntfy</span></label>
+
+    <div class="form form--2">
+      <p class="field"><label for="nServer">Server</label><input id="nServer" type="text" maxlength="63" data-k="notify.ntfyServer" spellcheck="false" autocomplete="off"><span class="hint">https://ntfy.sh, or your own instance.</span></p>
+      <p class="field"><label for="nTopic">Topic</label>
+        <span class="withbtn"><input id="nTopic" type="text" maxlength="47" data-k="notify.ntfyTopic" spellcheck="false" autocomplete="off"><button class="btn" type="button" id="btnTopic">Generate</button></span>
+        <span class="hint">Letters, digits, dashes and underscores.</span></p>
+      <p class="field"><label for="nToken">Access token (optional)</label><span class="secret"><input id="nToken" type="password" maxlength="71" data-k="notify.ntfyToken" data-secret autocomplete="off"><button class="btn btn--tiny" type="button" data-clear="nToken">Clear</button></span><span class="hint">Only for a protected or self-hosted topic.</span></p>
+    </div>
+
+    <div class="urlbox">
+      <span class="eyebrow">Subscribe to</span>
+      <code id="subUrl">—</code>
+      <button class="btn" type="button" id="btnCopyUrl"><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg><span>Copy</span></button>
+    </div>
+
+    <div class="btnrow btnrow--end">
+      <button class="btn btn--primary" type="button" id="btnTestNtfy"><svg class="i" aria-hidden="true"><use href="#i-bell"/></svg><span>Send a test notification</span></button>
+    </div>
+    <pre class="out" id="notifyOut" hidden></pre>
+  </article>
+
+  <article class="card">
+    <div class="card__head"><h2>What is worth a notification</h2></div>
+    <div class="togs">
+      <label class="sw"><input type="checkbox" data-k="notify.onDoseTaken"><span>Dose taken</span></label>
+      <label class="sw"><input type="checkbox" data-k="notify.onDoseMissed"><span>Dose missed</span></label>
+      <label class="sw"><input type="checkbox" data-k="notify.onDoseDue"><span>Dose due</span></label>
+      <label class="sw"><input type="checkbox" data-k="notify.onLidOpen"><span>Any lid opened</span></label>
+      <label class="sw"><input type="checkbox" data-k="notify.onUnexpectedOpen"><span>A lid opened with nothing scheduled</span></label>
+      <label class="sw"><input type="checkbox" data-k="notify.onLowBattery"><span>Battery low</span></label>
+      <label class="sw"><input type="checkbox" data-k="notify.onBoot"><span>The box started up</span></label>
+      <label class="sw"><input type="checkbox" data-k="notify.onDailySummary"><span>Daily summary</span></label>
+    </div>
+    <div class="form form--2">
+      <p class="field"><label for="nSumAt">Daily summary at</label><input id="nSumAt" type="time" data-k="notify.dailySummaryMinute" data-t="min"></p>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="card__head"><h2><svg class="i" aria-hidden="true"><use href="#i-moon"/></svg> Quiet hours</h2></div>
+    <p class="muted">Nothing is sent between these two times. Set them to the same value to turn quiet hours off.</p>
+    <div class="form form--2">
+      <p class="field"><label for="qFrom">From</label><input id="qFrom" type="time" data-k="notify.quietFromMinute" data-t="min"></p>
+      <p class="field"><label for="qTo">To</label><input id="qTo" type="time" data-k="notify.quietToMinute" data-t="min"></p>
+    </div>
+    <p class="muted" id="quietState"></p>
+  </article>
+
+  <details class="card card--det">
+    <summary><h2>Other delivery methods</h2><svg class="i chev" aria-hidden="true"><use href="#i-chevron"/></svg></summary>
+    <div class="det__body">
+      <h3>Pushover</h3>
+      <p class="muted">A one-off paid app, no topic secrecy to worry about. You need an application token and your user key.</p>
+      <label class="sw"><input type="checkbox" id="pEn2" data-k="notify.pushoverEnabled"><span>Send through Pushover</span></label>
+      <div class="form form--2">
+        <p class="field"><label for="poToken">Application token</label><span class="secret"><input id="poToken" type="password" maxlength="39" data-k="notify.pushoverToken" data-secret autocomplete="off"><button class="btn btn--tiny" type="button" data-clear="poToken">Clear</button></span></p>
+        <p class="field"><label for="poUser">User key</label><span class="secret"><input id="poUser" type="password" maxlength="39" data-k="notify.pushoverUser" data-secret autocomplete="off"><button class="btn btn--tiny" type="button" data-clear="poUser">Clear</button></span></p>
+      </div>
+      <div class="btnrow btnrow--end"><button class="btn" type="button" id="btnTestPo">Test Pushover</button></div>
+
+      <h3>Webhook</h3>
+      <p class="muted">A plain JSON POST, for Home Assistant, Discord, Slack or n8n.</p>
+      <label class="sw"><input type="checkbox" id="hEn2" data-k="notify.webhookEnabled"><span>Send to a webhook</span></label>
+      <p class="field"><label for="whUrl">URL</label><input id="whUrl" type="url" maxlength="159" data-k="notify.webhookUrl" spellcheck="false" autocomplete="off"></p>
+      <div class="btnrow btnrow--end"><button class="btn" type="button" id="btnTestWh">Test webhook</button></div>
+    </div>
+  </details>
+</section>
+
+</main>
+
+<footer class="foot">
+  <span id="footFw">EasyPill</span>
+  <span class="sep">&middot;</span>
+  <span id="footChip"></span>
+</footer>
+
+<div class="savebar" id="savebar" hidden>
+  <span id="saveMsg">Unsaved changes</span>
+  <button class="btn" type="button" id="btnDiscard">Discard</button>
+  <button class="btn btn--primary" type="button" id="btnSave">Save settings</button>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<dialog class="dlg" id="dlg" aria-labelledby="dlgH">
+  <form method="dialog" id="dlgForm">
+    <header class="dlg__head"><h2 id="dlgH"></h2></header>
+    <div class="dlg__body" id="dlgBody"></div>
+    <footer class="dlg__foot" id="dlgFoot"></footer>
+  </form>
+</dialog>
+
+<template id="t-lid">
+  <article class="lid" tabindex="0">
+    <div class="lid__top">
+      <span class="lid__day"></span>
+      <span class="pip pip--none"><svg class="i" aria-hidden="true"><use href="#i-dot"/></svg></span>
+    </div>
+    <div class="lidart" aria-hidden="true"><span class="lidart__flap"></span><span class="lidart__body"></span></div>
+    <p class="lid__state"><span class="lid__statetxt">&mdash;</span></p>
+    <p class="lid__next mono">&mdash;</p>
+  </article>
+</template>
+
+<template id="t-ev">
+  <li class="ev">
+    <span class="ev__i"><svg class="i" aria-hidden="true"><use href="#i-dot"/></svg></span>
+    <span class="ev__txt"></span>
+    <button class="ev__t" type="button"></button>
+  </li>
+</template>
+
+<script src="/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "easypill_core",
+  "version": "0.1.0",
+  "description": "Pure C++17 scheduling, adherence and settings logic for EasyPill. No Arduino, no ESP-IDF, no external dependencies, so it compiles and unit-tests on the host.",
+  "frameworks": "*",
+  "platforms": "*",
+  "build": { "libArchive": false }
+}

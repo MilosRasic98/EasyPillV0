@@ -1,0 +1,12 @@
+{
+  "name": "easypill_json",
+  "version": "0.1.0",
+  "description": "ArduinoJson <-> easypill_core conversions. Kept out of easypill_core so the core stays dependency-free and host-testable.",
+  "frameworks": "*",
+  "platforms": "*",
+  "dependencies": {
+    "easypill_core": "*",
+    "bblanchon/ArduinoJson": "^7.2.0"
+  },
+  "build": { "libArchive": false }
+}

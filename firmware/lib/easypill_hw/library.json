@@ -1,0 +1,9 @@
+{
+  "name": "easypill_hw",
+  "version": "0.1.0",
+  "description": "EasyPill V1 board drivers: the shared mux bus, hall scanning, analog sense, RGB/buzzer indication, and the power latch.",
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "dependencies": { "easypill_core": "*" },
+  "build": { "libArchive": false }
+}
