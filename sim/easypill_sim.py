@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""EasyPill V1 host simulator -- the whole product, minus the hardware.
+"""EasyPill V0 host simulator -- the whole product, minus the hardware.
 
 Why this exists: the box is a 7-lid pillbox whose entire user-visible surface is
 a web GUI and a stream of push notifications. None of that needs an ESP32 to
 exercise, so this file fakes the hardware (lids, battery, chargers, clock) and
-serves the *real* GUI out of web/ plus the real HTTP contract from docs/API.md.
+serves the *real* GUI out of web/ plus the same HTTP API as the firmware.
 Open the printed URL and you are looking at what the device will serve.
 
 Two things are deliberately faithful rather than convenient:
@@ -43,7 +43,7 @@ SIM_VERSION = "1.0.0"
 CHIP_NAME = "SIM"
 LID_COUNT = 7                 # ep::kLidCount
 # ep::kDefaultHallToLid. The V0 sensor row runs opposite to the days; measured
-# on hardware, see docs/HARDWARE.md 3. Must match the core byte for byte or the
+# on hardware. Must match the core byte for byte or the
 # parity harness diverges on the very first settings comparison.
 DEFAULT_HALL_TO_LID = [6, 5, 4, 3, 2, 1, 0]
 MAX_DOSES_PER_LID = 4         # ep::kMaxDosesPerLid
@@ -807,7 +807,7 @@ SETTINGS_SPEC = {
 
 # Every one of these reads back as "__set__" when stored and "" when empty,
 # posting "__set__" back leaves the stored value alone and posting "" clears it.
-# The Pushover user key is as much a credential as the token (NOTIFICATIONS.md),
+# The Pushover user key is as much a credential as the token,
 # and the GUI marks its input data-secret, so it belongs here too.
 SECRET_FIELDS = (("wifi", "pass"), ("wifi", "apPassword"),
                  ("notify", "ntfyToken"), ("notify", "pushoverToken"),
@@ -1365,7 +1365,7 @@ class Device:
 
     def log_event(self, etype, lid=NO_LID, detail=0, notify=True):
         """Appends with the right timestamp. localEpoch stays 0 until the clock
-        has been checked against NTP: HARDWARE.md 8 forbids inventing one."""
+        has been checked against NTP: the box never invents a wall-clock time."""
         event = {
             "localEpoch": self.now_local() if self.time_verified else 0,
             "uptimeMs": self.uptime_ms(),
@@ -1637,7 +1637,7 @@ class Device:
         self.next_sync_due_local = now + int(self.settings["time"]["resyncIntervalSec"])
         filled = self.events.backfill_times(now, self.uptime_ms())
         # timekeeper.cpp logs the measured drift in ppm here, not the
-        # correction in seconds; API.md's detail table documents the firmware.
+        # correction in seconds, so this does the same.
         self.log_event(EV_TIME_SYNCED, detail=int(self.measured_drift_ppm))
         if self.floor_local == 0 or self.floor_local > now:
             self.floor_local = now
@@ -1937,9 +1937,9 @@ def _fake_mac():
 
 
 # ---------------------------------------------------------------------------
-# docs/API.md, endpoint by endpoint. Field names and enum spellings here are
-# the contract: the GUI and the ESP32 server are written against the same
-# document, so nothing in this section gets renamed for convenience.
+# The HTTP API, endpoint by endpoint. Field names and enum spellings here are
+# the contract: the GUI and the ESP32 server use the same ones, so nothing in
+# this section gets renamed for convenience.
 # ---------------------------------------------------------------------------
 
 def dose_to_json(dose):
@@ -2975,7 +2975,7 @@ def print_banner(device, url, web_dir, web_files, state_file, demo):
     else:
         web_note = "empty or missing -> serving a placeholder page"
     print("")
-    print("  EasyPill V1 simulator %s - simulated hardware, real API." % SIM_VERSION)
+    print("  EasyPill V0 simulator %s - simulated hardware, real API." % SIM_VERSION)
     print("  This is NOT the box. Nothing here proves the firmware works.")
     print("")
     print("    open this     %s" % url)
@@ -2998,7 +2998,7 @@ def print_banner(device, url, web_dir, web_files, state_file, demo):
 
 def build_arg_parser():
     parser = argparse.ArgumentParser(
-        description="EasyPill V1 host simulator: the GUI and the whole "
+        description="EasyPill V0 host simulator: the GUI and the whole "
                     "workflow, with no hardware on the desk.")
     here = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument("--port", type=int, default=8080,
@@ -3025,7 +3025,7 @@ def build_arg_parser():
                         help="self-hosted ntfy base URL (default https://ntfy.sh)")
     parser.add_argument("--drift-ppm", type=float, default=-1840.0,
                         help="how fast the simulated RC oscillator runs wrong; "
-                             "there is no RTC on this board (HARDWARE.md 8)")
+                             "there is no RTC on this board")
     parser.add_argument("--verbose", action="store_true",
                         help="log every event, push and HTTP request")
     return parser

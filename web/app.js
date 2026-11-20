@@ -625,9 +625,9 @@
     return num(e.uptimeMs) + '|' + str(e.type) + '|' + num(e.lid) + '|' + str(e.text);
   }
 
-  // An event logged before the first sync carries at == 0 (API.md: "its `at` is
-  // `0` when the clock had never been verified at the time - use `uptimeMs` for
-  // those"). There is no wall-clock time to show and the box is not allowed to
+  // An event logged before the first sync carries at == 0, because the clock
+  // had never been verified at the time, and only its uptimeMs means anything.
+  // There is no wall-clock time to show and the box is not allowed to
   // invent one, so those rows are placed by their uptime against the uptimeS in
   // the same reply - the same reconstruction backfillTimes() does on the box.
   function evUptimeWord(upMs) {
@@ -928,9 +928,9 @@
       pills: d.pills.map(function (p) { return { name: p.name, dose: p.dose, count: p.count }; })
     };
   }
-  // Post only what the user touched. API.md: "Lids absent from the array are
-  // left alone, and so is a listed lid's dose list if the entry carries no
-  // 'doses' key". Sending all seven lids out of a cache that may be hours old
+  // Post only what the user touched. Lids absent from the array are left
+  // alone, and so is a listed lid's dose list if the entry carries no
+  // 'doses' key. Sending all seven lids out of a cache that may be hours old
   // silently undoes whatever another browser changed in the meantime.
   //   touch.lids   lid indices to include; the key is omitted when there are none
   //   touch.doses  include those lids' dose lists - false means rename only

@@ -1,4 +1,4 @@
-// The field names and enum spellings in here are docs/API.md, which the host
+// The field names and enum spellings in here are the HTTP API, which the host
 // simulator and the browser GUI also implement. Changing one means changing
 // three programs, so don't - add instead.
 #include "ep_json.h"
@@ -47,7 +47,7 @@ void putSecret(JsonObject out, const char* key, const char* stored) {
   out[key] = (stored && stored[0] != '\0') ? kSecretPlaceholder : "";
 }
 
-// docs/API.md fixes these two spellings; the simulator and the GUI compare
+// The API fixes these two spellings; the simulator and the GUI compare
 // against them literally.
 const char* lidModeWire(LidMode m) {
   return m == LidMode::Sequential ? "sequential" : "weekday";
@@ -414,7 +414,7 @@ void doseToJson(const Dose& d, JsonObject out) {
 bool doseFromJson(JsonObjectConst in, Dose& d) {
   bool ch = setBool(in["enabled"], d.enabled);
 
-  // docs/API.md: "time" wins when both are present. The GUI edits the string
+  // "time" wins when both are present. The GUI edits the string
   // and sends "minute" back only because it got it from us.
   uint16_t minute   = d.minute;
   bool haveMinute   = false;

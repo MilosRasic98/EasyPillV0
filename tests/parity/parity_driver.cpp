@@ -3,8 +3,8 @@
 // Prints a deterministic report of what easypill_core decides for a grid of
 // scheduler questions. tests/parity/parity_py.py prints the same report using
 // sim/easypill_sim.py, and run_parity.sh diffs the two. Any divergence between
-// the box and the thing the author demonstrates on his desk shows up here as a
-// diff line instead of as a surprise on the bench.
+// the firmware and the simulator shows up here as a diff line instead of as a
+// surprise on the bench.
 //
 // Keep the two report writers in step: same questions, same order, same
 // formatting. The point is that `diff` is the whole assertion.

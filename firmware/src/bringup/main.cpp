@@ -1,11 +1,11 @@
-// EasyPill V1 bring-up firmware.
+// EasyPill V0 bring-up firmware.
 //
 // This is the first thing flashed onto a board that has never been powered, so
 // it is deliberately the simplest program in the project: no scheduler, no web
 // server, no persistence, one USB-CDC command line, one hardware fact per
 // answer. If something in here says PASS, that part of the board works.
 //
-// Three facts shape every line below (docs/HARDWARE.md 1, 2 and 7):
+// Three facts shape every line below:
 //   * MUX_A/B/C address three XS3A4051s at once, so every access goes through
 //     MuxBus, which drops SIG_OUT low before the address moves and parks on
 //     channel 7 when idle.
@@ -61,7 +61,7 @@ ep::HallScanner gHall;
 ep::AnalogSense gSense;
 ep::Indicator   gLed;
 
-constexpr const char* kFirmwareName = "EasyPill V1 bring-up";
+constexpr const char* kFirmwareName = "EasyPill V0 bring-up";
 
 #if defined(ARDUINO_XIAO_ESP32C3)
 constexpr const char* kBuiltFor = "Seeed XIAO ESP32-C3 (ARDUINO_XIAO_ESP32C3)";
@@ -71,7 +71,7 @@ constexpr const char* kBuiltFor = "Seeed XIAO ESP32-S3 (ARDUINO_XIAO_ESP32S3)";
 
 // Any epoch past this means the clock has been set from the network at least
 // once; below it, time() is just seconds since boot. There is no RTC on this
-// board (docs/HARDWARE.md 8), so that distinction has to be made explicitly
+// board, so that distinction has to be made explicitly
 // everywhere a time is printed.
 constexpr uint32_t kPlausibleEpoch = 1735689600u;  // 2025-01-01 00:00:00 UTC
 
@@ -144,7 +144,7 @@ uint16_t absDiff(uint16_t a, uint16_t b) {
 }
 
 // ---------------------------------------------------------------------------
-// Static reference tables, straight out of docs/HARDWARE.md
+// Static reference tables: the pin map and the mux channel map
 // ---------------------------------------------------------------------------
 
 struct PinRow {
@@ -283,7 +283,7 @@ void sensorMaskToNames(uint8_t mask, char* out, size_t n) {
 
 // HallScanner::sensorSaysOpen is private, so the same rule is spelled out here
 // for the raw single-shot reads: hallClosedIsLow, flipped per sensor by
-// hallInvertMask (docs/HARDWARE.md 3).
+// hallInvertMask.
 bool hallSaysOpen(uint8_t sensor, bool rawHigh) {
   const bool inverted  = ((gSettings.hw.hallInvertMask >> sensor) & 1u) != 0;
   const bool closedLow = gSettings.hw.hallClosedIsLow != inverted;
@@ -301,7 +301,7 @@ size_t gLineLen         = 0;
 bool   gAwaitCloseLids  = false;  // the `c` prompt is the one place a bare Enter means something
 bool   gCalForce        = false;  // `c force`, carried across the prompt
 
-// One Enter is CR+LF with the monitor docs/BRINGUP.md tells you to run, and the
+// One Enter is CR+LF with `pio device monitor`, and the
 // two bytes arrive together. Both halves must count as a single keypress, in
 // the line reader and in the stop-key check alike, so this remembers whether
 // the byte just consumed was the CR - wherever it was consumed.
@@ -649,7 +649,7 @@ void printAdcTable() {
 
   // Channels 3 and 4 exceed the mux's VCC+0.5 V rating and clamp through its ESD
   // diode, so the number is not a measurement - only the threshold means
-  // anything (docs/HARDWARE.md 5).
+  // anything.
   if (hw.buttonDivNum == hw.buttonDivDen) {
     outf("   3  BUTTON_SIG         %5u mV          -   CLAMPED / threshold only: %s "
          "(>= %u mV)\n",
@@ -779,7 +779,7 @@ void cmdHallLive() {
   }
   Serial.print(
       "  Lift one lid at a time and note which sNN moves - that sensor belongs to the day\n"
-      "  printed on that lid, and the pair goes in the hall-to-lid table in BRINGUP.md.\n\n");
+      "  printed on that lid. That pairing is the hall-to-lid map (Settings > Hardware in the GUI).\n\n");
 
   uint16_t changes[ep::kLidCount] = {0};
   bool     last[ep::kLidCount];
@@ -877,7 +877,7 @@ void cmdWakeOnce() {
   Serial.print(
       "  WAKE_UP = hall1|..|hall7|BUTTON_SIG|SIG_CHARGE through U2/U3, level triggered.\n"
       "  Level triggered is why the firmware never arms a GPIO wake while it is already\n"
-      "  high: that wakes the chip instantly and forever (docs/HARDWARE.md 4).\n");
+      "  high: that wakes the chip instantly and forever.\n");
 }
 
 void cmdWakeLive() {
@@ -1228,7 +1228,7 @@ void finishCalibration(const char* answer) {
   Serial.print(
       "  Write those two values into Settings.hw. They are the whole difference between a\n"
       "  magnet that sits over the sensor when the lid is shut and one that approaches as\n"
-      "  it opens (docs/HARDWARE.md 3).\n");
+      "  it opens.\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -1337,7 +1337,7 @@ void cmdSelfTest() {
   } else {
     verdict(Verdict::Fail, "adc 3 BUTTON",
             "%u mV -> reads PRESSED; if nobody is holding the button this is D5 leaking "
-            "into R31 (docs/HARDWARE.md 10.5)",
+            "into R31",
             r.buttonRawMv);
   }
 
@@ -1417,7 +1417,7 @@ void cmdSelfTest() {
          "  colours, `n <ssid> <pass>` to set the clock, then `x` for the sleep rule.\n");
   } else {
     outf("  Fix the failures before trusting anything else. `d` for the channel map,\n"
-         "  docs/HARDWARE.md 10 for the known board problems and the rework order.\n");
+         "  the README for the known board errors and how to fix them.\n");
   }
 }
 
@@ -1459,7 +1459,7 @@ void cmdMonitor() {
 
   Serial.print("\n  MONITOR - one line whenever anything changes. Any key stops.\n");
   outf("  Lids are debounced %u ms, the button %u ms because D5 leaks into BUTTON_SIG and\n"
-       "  can fake a press (docs/HARDWARE.md 10.5). The battery is reported on every\n"
+       "  can fake a press. The battery is reported on every\n"
        "  50 mV of movement.\n\n",
        (unsigned)hw.hallDebounceMs, (unsigned)hw.buttonDebounceMs);
 
@@ -1562,7 +1562,7 @@ void cmdNetTest(char* args) {
       "\n"
       "  !! This is the command most likely to kill the board on battery: the AH-variant\n"
       "  !! protection trips at about 30 mA and Wi-Fi TX is far above that, so the cell\n"
-      "  !! disconnects about 10 ms into the first burst (docs/HARDWARE.md 10.1). Run it\n"
+      "  !! disconnects about 10 ms into the first burst. Run it\n"
       "  !! from a bench supply on TP2 (VBAT) / TP5 (GND).\n"
       "  !! Any key in the next 1.5 s aborts.\n");
   if (!waitMs(1500)) {
@@ -1609,7 +1609,7 @@ void cmdNetTest(char* args) {
     row("signal", "%d dBm on channel %u", (int)WiFi.RSSI(), (unsigned)WiFi.channel());
 
     // There is no RTC, so this is the only way the box ever learns the time or
-    // the date (docs/HARDWARE.md 8).
+    // the date.
     const uint32_t before = (uint32_t)time(nullptr);
     configTzTime(gSettings.time.tz, gSettings.time.ntp1, gSettings.time.ntp2);
     row("NTP servers", "%s%s%s", gSettings.time.ntp1,
@@ -1656,8 +1656,7 @@ void cmdNetTest(char* args) {
       Serial.print(
           "  learns a ppm correction from the gap between two syncs, and persists the last\n"
           "  epoch to NVS so a cold boot starts roughly right. Until the first sync it\n"
-          "  timestamps lid events monotonically and marks them time_unverified\n"
-          "  (docs/HARDWARE.md 8).\n");
+          "  timestamps lid events monotonically and marks them time_unverified.\n");
     } else if (aborted) {
       row("NTP", "aborted");
     } else {
@@ -1708,7 +1707,7 @@ void cmdLatch(char* args) {
         "  !! STOP. `p 0` drops POWER_LATCH. On battery that ends this session: the board\n"
         "  !! powers off and you have to hold the button again to bring it back. With USB\n"
         "  !! plugged in the XIAO's own regulator keeps 3V3 alive, so nothing visible\n"
-        "  !! happens (docs/HARDWARE.md 7).\n"
+        "  !! happens.\n"
         "  !! Type   p 0 yes   if that is really what you want.\n");
     return;
   }
@@ -1743,8 +1742,8 @@ void cmdSleepTest(char* args) {
   if (wakeHigh) {
     row("WAKE_UP", "HIGH -> timer only; a level wake would fire instantly, forever");
     outf("  That fallback is the point of this test, and on USB it is the normal path:\n"
-         "  SIG_CHARGE holds WAKE_UP high, so enterDeepSleep() refuses the pin wake\n"
-         "  (docs/HARDWARE.md 4). Expect wake reason `timer`.\n");
+         "  SIG_CHARGE holds WAKE_UP high, so enterDeepSleep() refuses the pin wake.\n"
+         "  Expect wake reason `timer`.\n");
   } else {
     row("WAKE_UP", "LOW -> arming the GPIO %u high-level wake as well as the timer",
         (unsigned)ep::pins::kWakeUpGpio);

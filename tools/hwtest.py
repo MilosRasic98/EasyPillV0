@@ -33,7 +33,7 @@ LIDS = 7
 POLL_S = 0.15
 
 # A LiPo below this is flat or absent; above it is a bad reading or a bench
-# supply. docs/HARDWARE.md 9: the pack is a single cell, 3.0 V to 4.2 V.
+# supply. The pack is a single cell, 3.0 V to 4.2 V.
 VBAT_MIN, VBAT_MAX = 3000, 4400
 
 

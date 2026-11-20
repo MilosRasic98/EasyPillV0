@@ -1,6 +1,6 @@
-// docs/API.md is the contract, and two other programs are written against the
-// same document: the host simulator and the browser GUI. A field renamed here
-// is a field renamed in three places.
+// The routes and JSON shapes in here are the contract, and two other programs
+// are written against it: the host simulator and the browser GUI. A field
+// renamed here is a field renamed in three places.
 //
 // Responses stream out as HTTP chunks rather than being built in a buffer,
 // because /api/history can be over 10 kB and the loop task has an 8 kB stack.
@@ -31,7 +31,7 @@ namespace {
 
 constexpr uint16_t kPort           = 80;
 constexpr uint32_t kClientActiveMs = 15000;
-constexpr size_t   kStateEvents    = 12;   // docs/API.md: /api/state carries the 12 newest
+constexpr size_t   kStateEvents    = 12;   // /api/state carries the 12 newest
 constexpr size_t   kMaxScanResults = 24;
 // Pattern::SpinRgb is a single pass: each colour slot is lit, then dark, so the
 // three flashes are separated and the user can say which came first. The timing
@@ -117,7 +117,7 @@ void sendJson(int code, const JsonDocument& doc) {
   sink.finish();
 }
 
-// The error shape from docs/API.md, built with snprintf because an error reply
+// The API's error shape, built with snprintf because an error reply
 // must work even when a JsonDocument allocation is what went wrong.
 //
 // Messages must not contain a double quote - nothing here escapes them - so
@@ -466,8 +466,8 @@ void handleSettingsPost() {
 
   JsonObjectConst body   = in.as<JsonObjectConst>();
   bool            merged = json::settingsFromJson(body, g.settings);
-  // Not in docs/API.md, but the simulator accepts it and a restore-from-backup
-  // wants to post the whole tree in one go.
+  // The simulator accepts this too, and a restore-from-backup wants to post the
+  // whole tree in one go.
   JsonObjectConst schedule = body["schedule"];
   if (!schedule.isNull()) {
     merged |= json::scheduleFromJson(schedule, g.settings.schedule);
@@ -731,8 +731,8 @@ void handleAction() {
     // main.cpp allows to - because an answer of "requested" tells nobody
     // whether the clock is right now. A failure leaves the loop to keep trying.
     //
-    // before/after go out as local epochs like every other timestamp in the API
-    // (docs/API.md), which is what the simulator already reports; lastSyncUtc is
+    // before/after go out as local epochs like every other timestamp in the API,
+    // which is what the simulator already reports; lastSyncUtc is
     // the one UTC field and says so in its name. correctionSec stays a
     // UTC-to-UTC delta, so a DST change landing inside the sync window cannot be
     // mistaken for an hour of drift - which means the offset has to be captured
@@ -933,7 +933,7 @@ void handleWifi() {
   }
   // Same convention as json::copySecret, which /api/settings uses on this very
   // field: an absent or non-string "pass", like the placeholder, means "keep the
-  // stored one" (docs/API.md: anything absent is left alone). An explicit "" is
+  // stored one" (anything absent is left alone). An explicit "" is
   // still a clear, which is how an open network is joined. The copy is so that
   // netSetCredentials does not strlcpy the stored password over itself.
   char        keep[sizeof g.settings.wifi.pass];

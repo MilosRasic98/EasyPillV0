@@ -1,7 +1,7 @@
 // EasyPill: the application.
 //
 // The ordering inside loop() is the design, not a style choice. All three muxes
-// share one address bus (docs/HARDWARE.md section 1), so the LED, the hall
+// share one address bus, so the LED, the hall
 // sensors and the ADC cannot run at the same time - they take turns, in this
 // order, and every handler has to give the bus back quickly. Nothing here
 // blocks for more than a few milliseconds except four calls: netScan(),
@@ -70,7 +70,7 @@ static uint8_t criticalSamples    = 0;
 static int8_t  lastChargerPresent = -1;  // -1 until the first sample says
 // Both of these live in RTC slow memory, next to the "already fired" guards
 // below. BUTTON_SIG can sit high for hours - a stuck button, or D5 leaking into
-// it on an unreworked board (docs/HARDWARE.md section 10.5) - and that is one
+// it on an unreworked board - and that is one
 // press, not a fresh press on every wake.
 static RTC_DATA_ATTR uint8_t buttonSamples  = 0;
 static RTC_DATA_ATTR bool    buttonReported = false;
@@ -121,7 +121,7 @@ static void handleLidChanges() {
       continue;
     }
 
-    // docs/NOTIFICATIONS.md: onLidOpen is "every lid, every time", and the
+    // onLidOpen is "every lid, every time", and the
     // simulator pushes lidOpened before it classifies anything. The toggle is
     // what keeps this quiet, not this call site - logging it and not notifying
     // made the checkbox a no-op on the real box. With no trustworthy clock this
@@ -238,8 +238,8 @@ static void batteryWatchdog(uint32_t nowMs) {
     g.keepAwakeFor(g.settings.power.awakeAfterEventSec);
   }
 
-  // The button is sampled, not interrupt-driven, and D5 leaks into BUTTON_SIG
-  // (docs/HARDWARE.md section 10.5), so a press has to survive two samples.
+  // The button is sampled, not interrupt-driven, and D5 leaks into BUTTON_SIG,
+  // so a press has to survive two samples.
   if (p.buttonPressed) {
     if (buttonSamples < 250) ++buttonSamples;
     if (buttonSamples == 2 && !buttonReported) {

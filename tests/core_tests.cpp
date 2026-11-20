@@ -202,7 +202,7 @@ static void testDefaults() {
 
   CHECK(s.hw.hallClosedIsLow);
   CHECK_EQ(s.hw.hallInvertMask, 0);
-  // The V0 sensor row runs opposite to the days (docs/HARDWARE.md 3), so the
+  // The V0 sensor row runs opposite to the days, so the
   // default is a reversal, not the identity.
   const uint8_t wantMap[ep::kLidCount] = {6, 5, 4, 3, 2, 1, 0};
   for (uint8_t i = 0; i < ep::kLidCount; ++i) CHECK_EQ(s.hw.hallToLid[i], wantMap[i]);

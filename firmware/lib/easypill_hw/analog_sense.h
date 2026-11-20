@@ -13,7 +13,7 @@ struct PowerReading {
   uint16_t vbatMv;        // after the 75k/100k divider correction
   uint16_t usbMv;         // after the 100k/75k divider correction
   uint16_t coilMv;
-  uint16_t buttonRawMv;   // at the ADC pin; clamped, see docs/HARDWARE.md 5
+  uint16_t buttonRawMv;   // at the ADC pin; clamped, threshold only
   uint16_t statRawMv;
   bool     buttonPressed;
   bool     statHigh;

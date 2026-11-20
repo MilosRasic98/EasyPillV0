@@ -1,299 +1,282 @@
-# EasyPill V1
+# EasyPill V0
 
-A seven-lid pillbox with a Seeed XIAO ESP32-C3 (or S3) hidden inside it. Each lid
-carries a magnet over an AH1912 hall switch, so the box knows when a lid was
-lifted. To the person using it the box has no screen, no buttons and no menus;
-everything useful happens on the relatives' side, as push notifications and a web
-GUI served by the ESP32 itself.
+![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-yellow.svg)
+![Status](https://img.shields.io/badge/Status-Working_Prototype-orange)
+![Platform](https://img.shields.io/badge/Platform-ESP32--C3-blue)
+![Language-C++](https://img.shields.io/badge/Language-C++-blue)
+![Language-Python](https://img.shields.io/badge/Language-Python-blue)
+![Version](https://img.shields.io/badge/Version-V0-purple)
 
-- [docs/HARDWARE.md](docs/HARDWARE.md) — the authoritative hardware facts, read off the schematic. Source of truth.
-- [docs/API.md](docs/API.md) — the HTTP contract shared by the firmware, the simulator and the GUI.
-- [docs/BRINGUP.md](docs/BRINGUP.md) — the bench procedure, in order, with the numbers to write down.
-- [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) — getting a push onto an iPad, shortest path first.
-- [docs/DESIGN.md](docs/DESIGN.md) — why the firmware is shaped the way it is.
+**VIDEO OUT WITH DETAILED PROJECT EXPLANATIONS - CHECK BELOW!**
 
----
+Has grandma taken her medication? This is the question I started with over 3 years ago when I first started thinking about this type of project. Like most people her age, my grandma needs to take a lot of medication throughout the day for cholesterol, hypertension, etc. When someone is home to double check whether she has taken the right medication at the right time, all is good, but what happens when everyone is at work? She is generally okay with this, but there are times she forgets to take her medication, or takes the wrong medication, or doubles some medication because she forgot she already took it etc. My idea with this project is to try and track this, without being a hindrance to her!
 
-## Status: running on the first board, partly proven
+This repository covers EasyPill V0, a pillbox that looks like a plain plastic box from the outside, but has an ESP32, 7 hall effect sensors and a battery hidden inside of it, so it can tell when each of the lids has been opened. On this page you will find the CAD files for the 3D printed parts, the schematics, Gerber files and the PCB project, the firmware for the ESP32, and the web dashboard that runs on it. If you have any questions or comments, feel free to contact me!
 
-Running on the first XIAO ESP32-C3 on the V1 PCB since **2026-11-02**. Plenty
-of it is still prediction, which is what the two lists below keep apart.
+This project was originally created for the [Element14 Presents](https://www.youtube.com/@Element14presents) YouTube channel. You can find the video and the blog that covers the whole build in more detail on the element14 community.
 
-**Measured on the board:**
+**MAIN VIDEO AND ELEMENT14 COMMUNITY BLOG - [CLICK HERE](https://community.element14.com/challenges-projects/element14-presents/b/projects/posts/has-grandma-taken-her-pills-this-esp32-pillbox-can-help-you-find-out?ICID=I-HP-has-grandma-taken-her-pills-this-esp32-EP741)**
 
-- Boots, joins Wi-Fi with build-time credentials, brings up mDNS, and syncs over
-  NTP — the clock agreed with a laptop to within 0.5 s.
-- All seven AH1912 hall sensors respond, each proved individually with a magnet
-  rather than inferred from an idle level. Channel 7's ground reference reads
-  LOW, so the mux and the address lines are alive.
-- Lid opens and closes are debounced, mapped to weekdays and logged, and dose
-  records are written with the right late/missed classification.
-- The GUI is served gzipped out of flash and renders in a browser.
-- **Battery operation, under radio load**: 241 HTTP replies with no failures and
-  no reset, finishing with a full active Wi-Fi scan, and the cell sagged 5 mV.
-  See [docs/HARDWARE.md](docs/HARDWARE.md) §9 — but note this board has had its
-  battery protection *disabled*; a stock board still cannot do this.
-- Settings survive a reboot. They did not until 2026-11-02 — see
-  [docs/DESIGN.md](docs/DESIGN.md), "Why the settings live in a file, not in
-  NVS", for a bug that silently discarded every setting the GUI ever wrote.
+![Finished EasyPill V0 next to the original sketches](pictures/readme/IMG_4024.jpg)
 
-**Still not measured, and still a prediction:**
+## Idea and Plan
 
-- The LED and the buzzer. No colour has been seen, no tone has been heard.
-- Standby and sleep current on a meter, so the sleep policy and the battery-life
-  arithmetic remain untested. Bench testing has mostly held the box awake.
-- A notification actually arriving on a phone.
-- A board with the battery protection *working*, which is what any second unit
-  needs rather than the disable-it rework this one got.
+So now that you have an idea for the general concept behind this project, let's see what would be our system requirements here!
 
-`easypill_core` passes 556 host assertions (`tests/run_core_tests.sh`) and the
-firmware and simulator agree on 10,246 scheduler answers
-(`tests/parity/run_parity.sh`). That covers the scheduler, the adherence model
-and the API, and it covers nothing electrical.
-[docs/BRINGUP.md](docs/BRINGUP.md) is still the procedure for turning the
-remaining predictions into measurements.
+![EasyPill Concept](pictures/readme/Drawing1_Picture.png)
 
----
+The main goal is to keep the design looking like an ordinary off-the-shelf pillbox. This means it should have the minimal amount of visible electronics and look completely plastic. But why? Wouldn't it be cooler to have a screen, LEDs, buttons etc? No, my idea here is to make the box look as stupid as possible. This thing shouldn't push the user to take any medication, as far as the user goes, they shouldn't even care whether there is anything inside it electronics wise. From their perspective, it is just a plastic box. The reason behind this is that a lot of older people don't like interacting with electronic gadgets, and would rather stay using something they are familiar with, and this is the reason I chose this approach. My goals for this project were:
 
-## What it can and cannot know
+1. Keep it looking like a plastic box, but make it "smart"
+2. Zero (or minimal) interactions from the user
+3. Never force or tell the user what to take
+4. Keep the family members in the loop
+5. 7 columns, 1 for each day, and 3 rows for 3 time slots per day (it would be cool to be able to switch between 1, 2, 3 and 4 time slots)
 
-Seven lids, one magnet each, one sensor each. That is the whole sensor budget, and
-it bounds everything else.
+This meant that any trace of electronics should be hidden as best as possible but still be able to track what is going on with the actual box. There are multiple ways of tackling this problem, and for this V0 version, I decided to go with tracking the individual lid openings, where each lid corresponds to a day. While this doesn't give the perfect result of tracking whether a pill has been taken out of the actual pillbox etc, it can still give you info whether the user interacted with the pillbox at the right time and took the pill out of the right day container (the right day issue is something that has happened before). In the end, this is how I envisioned the design behind the box.
 
-**It knows:** that lid *n* went from closed to open at a particular moment, and
-when it closed again. Nothing else.
+![EasyPill V0 Design](pictures/readme/Drawing2_Picture.png)
 
-**It cannot know:** which pill came out, how many came out, whether anything came
-out at all, or whether what came out was swallowed. A lid lifted and shut with
-nothing taken looks exactly like a dose taken correctly. There is no way around
-this with one magnet per lid.
+As you can see from the drawing above, everything is based around magnets! To detect whether a lid is closed or not, behind a thin plastic wall, there is a hall effect sensor, which is a type of sensor that can work as a switch if you get a magnet close to it. Each lid has a small magnet on it, and since the magnet doesn't have to touch the sensor, all of the electronics can stay hidden behind the plastic.
 
-What makes it useful anyway is that three of the four possible outcomes are still
-legible:
+I drew the plans for this build around 3 years ago, and below, you can find all of the sketches I made back then.
 
-| Signal | What the box sees | What it means |
+<p align="center">
+  <img src="pictures/readme/IMG_4032.jpg" width="32%" alt="EasyPill brainstorming sketch">
+  <img src="pictures/readme/IMG_4033.jpg" width="32%" alt="Electronics logic sketch">
+  <img src="pictures/readme/IMG_4034.jpg" width="32%" alt="ESP32 preliminary pin connections sketch">
+</p>
+<p align="center">
+  <img src="pictures/readme/IMG_4035.jpg" width="32%" alt="Design sketch">
+  <img src="pictures/readme/IMG_4036.jpg" width="32%" alt="Design sketch with the two ways of approaching magnets">
+  <img src="pictures/readme/IMG_4037.jpg" width="32%" alt="PCB layout sketch and checklist">
+</p>
+
+## Electronics
+
+I began the design of the pillbox with the electronics. If you take a look at all of the sketches that I have made so far as well as the second blue drawing, you can get the sense of how I wanted to pack in the electronics and what I needed. Everything runs from an ESP32 C3 XIAO board and there are 7 hall effect sensors. Everything else here is just purely there to assist with these two main electronic subsystems. This includes a lot of multiplexers and OR gates. The XIAO board I went for doesn't have a lot of pins, so as is done on keyboards, I used multiplexers to be able to read all of the hall effect values. I also used OR gates so that I can easily wake the ESP32 from its sleep mode when any of the lids is opened or the button is pressed. The device also essentially keeps itself awake, when you press the button you drive the EN pin of the buck-boost converter high, then in FW, you need to drive a dedicated GPIO high to keep that EN high once the button is released. This is done through an OR circuit that was made using two diodes. You can check out the full schematics below and also watch the video for more details! These are the main parts of the electronics:
+
+1. XIAO ESP32-C3 - The brains of the whole thing, with WiFi and BLE on board.
+2. 7x AH1912 hall effect switches - One for each lid. They are omnipolar, so it doesn't matter which way the magnets are turned.
+3. 3x 8:1 analog multiplexers - One reads the hall effect sensors, one reads the analog signals (battery, USB and wireless coil voltage, button and charger status), and one drives the outputs for the RGB LED and the buzzer. All three share the same 3 address lines to save pins.
+4. Wake up circuit - Two 74LV32A OR gate ICs that combine all of the hall effect sensors, the button and the charger signal into a single wake up signal for the ESP32.
+5. 3V3 buck-boost regulator - TPS63021, so the device stays operational as the battery voltage drops below 3.3 V. There is also a footprint for a backup LDO on the PCB, since this was my first time soldering a buck-boost in such a small package, but in the end I didn't need it.
+6. Battery charging and protection - MCP73831 charger that can be powered from either the USB or a 5 V wireless charging coil, and an AP9101C battery protection circuit.
+
+The PCB is a long and thin 4-layer board, with the XIAO at one end and the 7 hall effect sensors on the bottom side, spaced so that each one lines up with its lid. The pictures below show the top and the bottom layer of the PCB, and the assembled board from both sides.
+
+![PCB top layer](pictures/Screenshots/PCB_Layout_Top.png)
+
+![PCB bottom layer](pictures/Screenshots/PCB_Layout_Bottom.png)
+
+<p align="center">
+  <img src="pictures/readme/IMG_4063.jpg" width="49%" alt="Assembled PCB, top side">
+  <img src="pictures/readme/IMG_4064.jpg" width="49%" alt="Assembled PCB, bottom side with the hall effect sensors">
+</p>
+
+The PCB was designed in EasyEDA Pro, and everything you need for making your own is in the `hardware` directory. There you can find the full schematics as a PDF, the Gerber files, the pick and place file, and the project file so you can do your own edits to it. One thing to note, the PCB and some of the files say V1 on them (REV01-DEC2023 on the silkscreen), this is the same board that this V0 of the project is built around.
+
+### Schematics
+
+The schematics are split into 7 sheets, and you can click on any of them to see it in full size:
+
+1. Battery Charge & Protection
+2. Power Electronics
+3. Output Signals
+4. Input Signals
+5. Hall Effect Sensing
+6. ESP32 C3
+7. Wake Up Circuit
+
+<p align="center">
+  <img src="hardware/schematics/1_BatteryChargeProtection.png" width="49%" alt="Schematic 1 - Battery Charge and Protection">
+  <img src="hardware/schematics/2_PowerElectronics.png" width="49%" alt="Schematic 2 - Power Electronics">
+</p>
+<p align="center">
+  <img src="hardware/schematics/3_OutputSignals.png" width="49%" alt="Schematic 3 - Output Signals">
+  <img src="hardware/schematics/4_InputSignals.png" width="49%" alt="Schematic 4 - Input Signals">
+</p>
+<p align="center">
+  <img src="hardware/schematics/5_HallEffectSensing.png" width="49%" alt="Schematic 5 - Hall Effect Sensing">
+  <img src="hardware/schematics/6_ESP32C3.png" width="49%" alt="Schematic 6 - ESP32 C3">
+</p>
+<p align="center">
+  <img src="hardware/schematics/7_WakeUpCircuit.png" width="49%" alt="Schematic 7 - Wake Up Circuit">
+</p>
+
+### ERRORS
+
+If you wish to replicate this project, be aware that there are some errors in the project that you need to watch out for:
+
+1. Error in the battery protection circuit - Connect VBAT_NEG to GND using a piece of wire.
+2. Change R36 to 3k3 to lower the charging current.
+3. There is a GND break in the PCB if you don't solder the LDO, so make sure to connect the GND pin of the LDO to the GND pad of the LDO using a piece of wire.
+4. For the external button, make sure to connect a 33k resistor in series with the button or you risk burning out the ESP32.
+5. Wrong footprints for the LED MOSFETs.
+6. The JST connectors turned out to be too big for the enclosure, so I soldered the wires directly to the pads on the PCB.
+
+### Bill of Materials
+
+| # | Product Name | Manufacturer | Quantity | Farnell Order Code | Newark SKU |
+|---|---|---|---|---|---|
+| 1 | Resistor 100k 1% 0603, CRCW0603100KFKEA | VISHAY | 21 | 1469649 | 27AM5987 |
+| 2 | Resistor 330R 1% 0603, CRCW0603330RFKEA | VISHAY | 6 | 1469803 | 52K8432 |
+| 3 | Resistor 75k 1% 0603, CRCW060375K0FKEAC | VISHAY | 4 | 4177692 | 72AK6382 |
+| 4 | Resistor 470R 1% 0603, CRCW0603470RFKEAC | VISHAY | 4 | 4177643 | 26AK5047 |
+| 5 | Resistor 1M 1% 0603, CRCW06031M00FKEAC | VISHAY | 1 | 4177585 | 67AK7940 |
+| 6 | Resistor 2k7 1% 0603, CRCW06032K70FKEA | VISHAY | 1 | 1469768 | 61M5353 |
+| 7 | Resistor 2k 1% 0603, CRCW06032K00FKEA | VISHAY | 1 | 1469764 | 61M5349 |
+| 8 | Capacitor 100nF 50V X7R 0603, MC0603B104K500CT | MULTICOMP PRO | 23 | 1759122 | 06R4927 |
+| 9 | Capacitor 4.7uF 25V X7R 0805, C0805C475K3RACTU | KEMET | 3 | 4246323 | 29AH8976 |
+| 10 | Capacitor 10uF 16V X7R 0805, 0805YC106KAT2A | KYOCERA AVX | 3 | 4229688 | 08AK4862 |
+| 11 | Capacitor 22uF 6.3V X5R 0805, C0805C226M9PACTU | KEMET | 5 | 1108326 | 70K9142 |
+| 12 | XIAO ESP32-C3 microcontroller board, 113991054 | SEEED STUDIO | 1 | 4060379 | 61AK2694 |
+| 13 | LDO regulator 3.3V 1.5A, AP7362-33SP-13 | DIODES INC | 1 | 3482985 | 76AH4793 |
+| 14 | Li-ion charge controller, MCP73831T-2ACI/OT | MICROCHIP | 1 | 1332158 | 56K7045 |
+| 15 | 8:1 analogue multiplexer, NX3L4051PW,118 | NXP | 3 | 2775927 | 31AC6745 |
+| 16 | Omnipolar hall effect switch, AH1912-W-7 | DIODES INC | 7 | 3518282 | 81AH8722 |
+| 17 | Quad 2-input OR gate TSSOP-14, 74LV32APWJ | NEXPERIA | 2 | 3010255 | 97AC8288 |
+| 18 | N-channel MOSFET 60V SOT-323, 2N7002BKW,115 | NEXPERIA | 6 | 1894713 | 55T7739 |
+| 19 | Schottky rectifier 40V 3A, RB050LAM-40TR | ROHM | 4 | 2918848 | 72AC6588 |
+| 20 | TVS diode 5V 400W SMA, SMAJ5.0A-E3/61 | VISHAY | 1 | 9550941 | 05R5746 |
+| 21 | Power inductor 1.5uH 2.1A 3x3mm, SRN3015-1R5Y | BOURNS | 1 | 4203910 | 64T2365 |
+
+Parts used outside of Newark/Farnell:
+
+| # | Name | Description |
 |---|---|---|
-| Right day, right time | Today's lid opened inside its dose window | Almost certainly fine. Logged `taken`. |
-| Right time, wrong lid | A lid opened near a dose time, but not today's lid | Wrong compartment, or the tray is rotated. Worth a notification. |
-| Nobody opened it | No open before the window closed plus grace | The one that actually matters. Logged `missed`. |
-| Opened at an odd hour | A lid opened nowhere near any dose | Refilling, curiosity, or confusion. Logged `unexpectedOpen`. |
+| 1 | Buck-boost converter TPS63021DSJR | 3.3 V output, VSON-14, fits U7 |
+| 2 | Li-ion battery protector AP9101CK-AHTRG1 | SOT-23-5, fits U11 |
+| 3 | 3D printing filament | White PLA |
+| 4 | Polycarbonate sheet | 4 mm thick, cut to size |
+| 5 | Li-ion cell | Small single cell, reused. Soldered to the U10 pads, pin 1 = + |
+| 6 | M2.5 screws | |
+| 7 | Hook-up wire | Leads soldered to the U6, U8, U10, U21 and CTL1 pads |
 
-The box never claims a pill was taken. It reports that a lid was opened and lets
-the adherence model attach that open to a scheduled dose. See
-[docs/DESIGN.md](docs/DESIGN.md#the-adherence-model) for what each state means.
+The schematics show the XS3A4051PWJ multiplexers and BSS138BKW MOSFETs. The NX3L4051PW and 2N7002BKW from the table above have the same pinout and are the ones that were in stock. Also, the LDO from the table is the backup for the buck-boost, so don't solder both of them (this is written on the PCB as well).
 
----
+## Mechanical Design
 
-## Build targets
+The final thing before assembling the whole thing is of course the mechanical design. You can see where all of the sketches were going, and I actually managed to make the final thing look pretty close to the drawings that I made all those years ago. There are a couple of things to point out on the mechanical design. The concept is meant to be printed on an FDM printer, hence a lot of the slop and tolerances in the system. Besides 3D printing, since totally clear lids are needed, I had to cut them out of a 4mm polycarbonate sheet by scoring them with an exacto knife over and over again before breaking them. This gave pretty nice results in the end. The only additional hardware that was needed were some small M2.5 screws to hold everything together, but I would like to not have those either so I can get a completely seamless look!
 
-Four environments, defined in [firmware/platformio.ini](firmware/platformio.ini).
-Build from inside `firmware/`.
+![CAD model of the EasyPill V0](pictures/Screenshots/CAD_Assembly.png)
 
-| Env | What it is |
-|---|---|
-| `bringup-c3` | Interactive serial test harness for the C3. Flash this first. |
-| `bringup-s3` | Same, for the S3. |
-| `app-c3` | The real firmware for the C3: scheduler, web GUI, notifications. |
-| `app-s3` | Same, for the S3. |
+The PCB sits in a slot along the edge of the main shell, right under the free ends of the lids, and all 7 lids share a single metal pin as the hinge. Each polycarbonate lid has two small printed pieces glued to it, one for the hinge and one on the other end for the magnet. In the pictures below you can see the main shell with all of the lids open, the PCB in its slot, the hinge, and a closed lid sitting right above the PCB.
+
+<p align="center">
+  <img src="pictures/readme/IMG_4058.jpg" width="49%" alt="Main shell with all of the lids open">
+  <img src="pictures/readme/IMG_4059.jpg" width="49%" alt="PCB inside of the main shell">
+</p>
+<p align="center">
+  <img src="pictures/readme/IMG_4060.jpg" width="49%" alt="Hinge with the metal pin">
+  <img src="pictures/readme/IMG_4061.jpg" width="49%" alt="Closed lid sitting above the PCB">
+</p>
+
+The part with the compartments is a separate insert that just drops into the main shell, so the same box can be used with a different number of time slots per day by printing a different insert. For now, there is only the 3x7 one. On the side of the box there is the end cap, which houses the battery and the push button.
+
+<p align="center">
+  <img src="pictures/readme/IMG_4057.jpg" width="49%" alt="3x7 insert">
+  <img src="pictures/readme/IMG_4055.jpg" width="49%" alt="End cap with the battery and the push button">
+</p>
+
+All of the 3MF files for the 3D printed parts, and a STEP file of the whole assembly, are in the `CAD` directory:
+
+1. Main Shell V2 - The main body of the box that holds the PCB and the lids
+2. 3x7 Insert V2 - The insert with 21 compartments
+3. End Cap V2 and V3 - Two versions of the end cap for the battery and the push button
+4. Push Button Mount V2 - Holds the push button inside of the end cap
+5. Lid Hinge and Lid Lock V1 - The two printed pieces for each lid, you need 7 of each
+
+<p align="center">
+  <img src="pictures/readme/IMG_4026.jpg" width="60%" alt="Finished EasyPill V0 above the sketch it started from">
+</p>
+
+## Software
+
+To bring everything together, I needed some software of course. While the original plan was for this to be able to connect to WiFi and send notifications via a custom app for Android/iOS, for now, I made it so that there is a dashboard on the local network that runs on the ESP32, so you can look at the live view of all of the hall effect sensors and tune anything that you need to. For programming the firmware and the dashboard, I used Claude.
+
+![EasyPill dashboard with the Monday lid open](pictures/readme/GUI_Now_LidOpen_crop.png)
+
+On the dashboard you can:
+
+1. See the live state of all 7 lids, when the next dose is, and the latest activity
+2. Set up the schedule, with up to 4 doses per day and a time window around each dose in which opening the lid counts for that dose
+3. Look at the history of the doses that were on time, late or missed
+4. Change the settings like the WiFi, time zone and sleep, and set which hall effect sensor is under which day
+
+Keep in mind that the box only knows that a lid has been opened, it can't know whether the pill was actually taken!
+
+Below you can see the history tab, the schedule tab and the hardware settings.
+
+![History tab of the dashboard](pictures/readme/GUI_History_crop.png)
+
+<p align="center">
+  <img src="pictures/readme/GUI_Schedule_crop.png" width="49%" alt="Schedule tab of the dashboard">
+  <img src="pictures/readme/GUI_Settings_Hardware_crop.png" width="49%" alt="Hardware settings of the dashboard">
+</p>
+
+The firmware is a PlatformIO project (Arduino framework) in the `firmware` directory, and the dashboard from the `web` directory gets packed into the firmware when you build it, so there is only one thing to flash. Since there is no RTC on the PCB, the time is synced over NTP whenever the WiFi is connected. The firmware also has support for sending notifications over ntfy, Pushover or a webhook, which you can set up from the dashboard, but the local dashboard itself is what I focused on for this version.
+
+### Flashing the Firmware
+
+1. Install [PlatformIO](https://platformio.org/install).
+2. Copy `firmware/include/wifi_default.example.h` to `firmware/include/wifi_default.h` and put in the name and the password of your WiFi.
+3. Connect the XIAO over USB and upload the firmware:
 
 ```bash
 cd firmware
-pio run -e bringup-c3 -t upload      # the test harness goes on first
-pio device monitor -e bringup-c3     # drive it over USB-CDC
-pio run -e app-c3 -t upload          # then the real firmware
+pio run -e app-c3 -t upload
 ```
 
-Swap `-c3` for `-s3` throughout on an S3.
+After that, the dashboard is available at `http://easypill.local`. If you skip step 2, or the box can't connect to your WiFi, it starts its own access point called `EasyPill-setup`, where you can set up the WiFi at `http://192.168.4.1`.
 
-There is no `uploadfs` step and no filesystem image to flash. The GUI is baked
-into the firmware by `tools/gen_web_assets.py` as gzipped PROGMEM blobs, so a
-plain `upload` carries any change under `web/` with it. LittleFS on the board
-holds only the event log and the dose records, and since there is no
-`firmware/data/`, running `uploadfs` would overwrite that history with nothing.
+There is also a second firmware for testing a freshly soldered board over the serial port, one thing at a time (hall effect sensors, multiplexer channels, voltage measurements, LED, buzzer and the power latch). You can upload it with `pio run -e bringup-c3 -t upload`. Both firmwares can also be built for the XIAO ESP32-S3 (`app-s3` and `bringup-s3`), but I have only tested them on the C3.
 
-### Which module do you have?
+### Trying out the Dashboard Without the Hardware
 
-- The **S3** module has a metal shield can over it. The **C3** does not.
-- The upload log prints `Chip is ESP32-C3 (revN)` or `Chip is ESP32-S3 (revN)`.
-- The C3 has 4 MB of flash and uses the `min_spiffs` partition table; the S3 has
-  8 MB and uses the stock table.
-
-Flashing a C3 build onto an S3 fails at the `board_pins.h` guard rather than
-silently mis-driving pins, so a mix-up costs a compile error, not hardware.
-
-### Bench supply, not battery
-
-Run every bring-up step from a **bench supply on TP2/TP5**, current limit around
-500 mA. The battery protection on this revision (U11, the AH variant, with
-Q5/Q6 at roughly 2.4 Ω in series) trips at about **30 mA**, which is less than a
-Wi-Fi transmit burst draws. On a battery the board will disconnect itself roughly
-10 ms into the first TX. TP2/TP5 bypasses Q5/Q6 entirely.
-
-With that protection **disabled**, Wi-Fi on battery has been measured and is
-solid — 241 requests, no failures, no reset, 5 mV of sag, full scan included
-(`tools/battery_wifi.py`, 2026-11-02; see [HARDWARE.md §10](docs/HARDWARE.md)).
-That is the rework succeeding, not the trip being imaginary, so bring-up still
-belongs on the bench supply.
-
-Do not try to characterise Wi-Fi, notifications or sleep current on a battery
-until the protection rework in
-[docs/HARDWARE.md §10](docs/HARDWARE.md) is in. Everything else the bring-up
-procedure asks for can be done on the bench supply.
-
----
-
-## Quick start
-
-1. **Rework the board** in the order given in [docs/HARDWARE.md §10](docs/HARDWARE.md).
-   At minimum: disable U9, bodge `VINA`→`VIN`. Do not skip to step 2 before this.
-2. **Bring-up firmware.** `pio run -e bringup-c3 -t upload`, then open the
-   monitor and press `?`. Work through
-   [docs/BRINGUP.md](docs/BRINGUP.md) and fill in its table. You end up with the
-   hall-to-lid map, the hall polarity, the LED channel colours, the buzzer drive
-   mode and the divider numbers.
-3. **App firmware.** `pio run -e app-c3 -t upload`. The GUI goes with it.
-4. **Wi-Fi.** Easiest is to put the network in the build before you flash:
-
-   ```bash
-   cp firmware/include/wifi_default.example.h firmware/include/wifi_default.h
-   ```
-
-   Fill in the SSID and password and the board joins on first boot, no AP
-   involved. That file holds a password in clear text and is in `.gitignore`;
-   the `.example.h` beside it is the tracked template. Leave it out and nothing
-   changes from how this used to work.
-
-   Otherwise, with no credentials stored — or after three failed joins — the box
-   raises an access point called `EasyPill-setup` and holds it up for five
-   minutes at a time, refreshed while a phone is connected to it. Join it, open
-   `http://192.168.4.1`, pick a network. Be warned that phones and laptops tend
-   to leave a network with no internet on it within seconds, which is what makes
-   the baked-in route worth the bother.
-
-   Either way the box then lives at `http://easypill.local` (or whatever you set
-   as the hostname) on your own network.
-
-   A network provisioned through the GUI always beats the built-in one, and the
-   built-in pair is never written to NVS — so editing `wifi_default.h` and
-   reflashing really does change which network the box joins, instead of being
-   shadowed by a stale blob that a plain flash does not erase.
-5. **GUI.** Enter the values from the bring-up table under Settings → Hardware,
-   set the schedule, name the lids.
-6. **Notifications.** Follow [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md).
-   ntfy with an unguessable topic is about four minutes of work. Press the test
-   button before you trust it.
-
-Step 6 is the one that makes the box worth building. The GUI is only reachable
-while the box is awake; the notifications work regardless.
-
----
-
-## Repository map
-
-```
-docs/            HARDWARE.md and API.md are the contracts; the rest explains them
-hardware/
-  schematics/    the V1 schematic and its review: the origin of every constraint
-firmware/
-  platformio.ini four envs: bringup-{c3,s3}, app-{c3,s3}
-  include/
-    board_pins.h  pin map, mux channel map, divider ratios
-  lib/
-    easypill_core/  pure C++17: settings, schedule, adherence, time maths, events.
-                    No Arduino.h anywhere in here, which is what makes it testable
-    easypill_hw/    board drivers: MuxBus, HallScanner, AnalogSense, Indicator,
-                    PowerLatch
-    easypill_json/  ArduinoJson <-> core conversions, kept out of core on purpose
-  src/
-    bringup/        the serial test harness
-    app/            app_state, store, net_wifi, timekeeper, notifier, web_server
-  tools/
-    gen_web_assets.py  gzips web/ into a header before the app builds
-sim/             easypill_sim.py: the same HTTP API, no hardware
-tests/           run_core_tests.sh: host unit tests for easypill_core
-tools/
-  check.sh       everything that can be verified without a board, in one command
-web/             the single-page GUI, served gzipped from flash
-```
-
-`easypill_core` is the part worth protecting. It has no Arduino dependency, no
-heap allocation and no clock of its own — everything goes in as a local epoch
-integer. That is why the schedule and adherence logic can be tested on a laptop.
-
----
-
-## Running it without hardware
-
-The host simulator implements the whole of
-[docs/API.md](docs/API.md) including `POST /api/sim`, which fakes lid opens,
-button presses, battery voltage, charger presence and the passage of time. It
-serves the real GUI from `web/`, so the GUI runs against the same contract the
-firmware implements.
+If you just want to click through the dashboard without building anything, there is a simulator written in Python that serves the same dashboard and fakes the lids, the battery and the time. It only needs Python 3, no extra libraries:
 
 ```bash
-python3 sim/easypill_sim.py --port 8080
+python3 sim/easypill_sim.py
 ```
 
-Then open `http://127.0.0.1:8080`. To open Monday's lid:
+Then open `http://127.0.0.1:8080` in your browser. If you run it with `--demo`, it goes through a whole week of doses on its own.
 
-```bash
-curl -sX POST localhost:8080/api/sim -H 'content-type: application/json' -d '{"openLid":0}'
+## Repository Structure
+
+```
+EasyPillV0/
+├── CAD/            # 3MF files for the 3D printed parts and a STEP file of the assembly
+├── hardware/       # Schematics, Gerber files, pick and place file and the EasyEDA Pro project
+├── firmware/       # PlatformIO project for the XIAO ESP32-C3
+├── web/            # The dashboard that gets packed into the firmware
+├── sim/            # Simulator for trying out the dashboard without the hardware
+├── tools/          # Scripts for flashing and testing the board
+├── tests/          # Tests for the scheduling logic that run on a PC
+├── pictures/       # Photos, drawings and screenshots
+├── LICENSE         # GPL-3.0
+└── README.md
 ```
 
-To run a simulated day in a minute:
+## What's Next
 
-```bash
-curl -sX POST localhost:8080/api/sim -H 'content-type: application/json' -d '{"timeScale":1440}'
-```
+This is just the V0 of EasyPill, and there is a lot I would like to change and add for the V1, including (but not limited to):
 
-The core unit tests build with a host compiler and need neither PlatformIO nor a
-board:
+1. Detecting whether the pills were actually taken out of the compartments, and not just whether the lid was opened
+2. A new PCB that fixes all of the errors from the list above, so there are no more bodge wires
+3. Using an ESP32 module instead of the XIAO board, so I have more GPIOs and a 32 kHz crystal for timekeeping
+4. Smaller passive components to free up some space on the PCB
+5. Adding an IMU so the box can wake up when somebody picks it up
+6. Wireless charging, so the USB port and the button are not needed at all
+7. Getting rid of the visible screws for a completely seamless look
+8. Notifications on the phones of the family members
 
-```bash
-tests/run_core_tests.sh
-```
+If you have suggestions for what else you'd like to see added, feel free to reach out!
 
-It prints `556 checks, 0 failures`. `tools/check.sh core` runs the same thing,
-and `tools/check.sh` on its own also builds all four firmware targets and
-regenerates the embedded web assets.
+## Disclaimer
 
-The contract those two honour: the simulator answers every endpoint in
-`docs/API.md` on a local port with `/api/sim` enabled (the firmware 404s that
-route), and `run_core_tests.sh` compiles `firmware/lib/easypill_core` against a
-C++17 host toolchain and exits non-zero on the first failure. If you change
-`docs/API.md`, three implementations have to change with it: the firmware, the
-simulator and the GUI.
+This project is intended for **educational, experimental, and hobby use only**. EasyPill is **not a medical device**, is **not certified**, and must not be relied on to make sure somebody has taken their medication. It can only tell that a lid has been opened, not that a pill has been taken.
 
-The third check is there for exactly that:
+The dashboard has no login and no encryption, it is a proof of concept meant to be used on your local network, so don't expose it to the internet.
 
-```bash
-tools/check.sh parity
-```
-
-It asks `easypill_core` and `easypill_sim.py` the same 10,246 scheduler
-questions — which lid owns a day, which dose an open belongs to, when a dose
-counts as missed, what the boot floor hides — and diffs the two reports. It
-prints `10246 answers, firmware and simulator agree`, or the lines where they
-do not.
-
-The simulator is how the box gets demonstrated and tuned with nothing on the
-desk, so a divergence does not just produce a wrong number: it teaches you
-something false about your own device.
-Of the 87 defects the first review turned up, 28 were exactly that, and nothing
-else in the tree notices when the two drift apart. Adding a question means
-adding it to both `tests/parity/parity_driver.cpp` and
-`tests/parity/parity_py.py`; the diff is the assertion, so there is no expected
-output to keep up to date.
-
----
-
-## Licence and provenance
-
-No licence yet, so it is all rights reserved by default: readable, not
-reusable. Needs settling before this goes public.
-
-Single-unit personal project; the hardware notes in `docs/HARDWARE.md` come from
-`hardware/schematics/Schematic_EaSyPill_V1_2026-09-27.pdf` and the schematic
-review alongside it. Nothing here has been through EMC or any kind of medical
-assessment, and it should not be the only thing standing between somebody and
-their medication.
+All hardware, firmware, and software are provided **"as-is" without warranty**, and the author assumes **no responsibility** for any damages, injuries, or losses resulting from the use of this project.

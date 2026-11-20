@@ -60,7 +60,7 @@ struct TimeSettings {
   char tz[64];           // POSIX TZ string, e.g. "CET-1CEST,M3.5.0,M10.5.0/3"
   // Measured RTC error in parts per million, signed. Learned by comparing
   // elapsed RTC seconds against elapsed NTP seconds across two syncs and used
-  // to correct sleep durations. See docs/HARDWARE.md section 8.
+  // to correct sleep durations.
   int32_t  driftPpm;
   uint32_t resyncIntervalSec;
 };

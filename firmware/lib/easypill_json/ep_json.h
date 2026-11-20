@@ -1,4 +1,4 @@
-// Settings and schedule <-> JSON, matching docs/API.md exactly.
+// Settings and schedule <-> JSON, in the shape the HTTP API serves.
 #pragma once
 
 #include <ArduinoJson.h>

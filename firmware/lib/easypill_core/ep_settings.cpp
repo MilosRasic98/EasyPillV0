@@ -10,8 +10,7 @@ namespace {
 
 // easypill_core must stay free of Arduino.h, so it cannot include
 // include/board_pins.h. The hardware-derived numbers below are copied from
-// there and from docs/HARDWARE.md; if the board is reworked, that document
-// changes first, then board_pins.h, then these.
+// there; if the board is reworked, board_pins.h changes first, then these.
 constexpr uint8_t  kDefaultLedChannelRed   = 2;    // U5 ch2 -> Q1 -> CTL1 pin 2
 constexpr uint8_t  kDefaultLedChannelGreen = 1;    // U5 ch1 -> Q2 -> CTL1 pin 3
 constexpr uint8_t  kDefaultLedChannelBlue  = 0;    // U5 ch0 -> Q3 -> CTL1 pin 4
@@ -21,8 +20,8 @@ constexpr uint8_t  kMaxOutputChannel       = 3;    // U5 drives four FETs, 0..3
 // colour there would PWM the buzzer instead of lighting the LED.
 constexpr uint8_t  kMaxLedChannel          = 2;
 constexpr uint16_t kDefaultBuzzerToneHz    = 2700;
-// Hall sensor index -> lid index, measured on the V0 board one sensor at a time
-// (docs/HARDWARE.md 3). The sensor row runs opposite to the days: sensor 0 is
+// Hall sensor index -> lid index, measured on the V0 board one sensor at a
+// time. The sensor row runs opposite to the days: sensor 0 is
 // Sunday, sensor 6 is Monday. This is mechanical, not electrical -- the mux
 // channel order in board_pins.h is unaffected -- so it changes if the PCB is
 // mounted differently, and tools/mapdays.py re-derives it over HTTP.
@@ -129,7 +128,7 @@ void applyDefaults(Settings& s) {
   setStr(s.time.tz, sizeof(s.time.tz), "CET-1CEST,M3.5.0,M10.5.0/3");
   s.time.driftPpm = 0;  // unknown until two syncs have been compared
   // There is no RTC and RTC_SLOW_CLK is the internal RC oscillator, so the
-  // clock has to be pulled back every few hours. docs/HARDWARE.md section 8.
+  // clock has to be pulled back every few hours.
   s.time.resyncIntervalSec = 6 * kSecPerHour;
 
   s.notify.ntfyEnabled = false;

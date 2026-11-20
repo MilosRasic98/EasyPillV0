@@ -2,12 +2,9 @@
 # Prove the firmware and the simulator answer the same scheduler questions the
 # same way.
 #
-# 28 of the 87 defects found in the first review were the C++ core and the
-# Python simulator quietly disagreeing. That matters more than it sounds: the
-# simulator is how this box gets demonstrated and tuned with no hardware on the
-# desk, so a divergence does not just produce a wrong number, it teaches the
-# author something false about his own device. Nothing else in the tree notices
-# when the two drift apart. This does.
+# The simulator is how the box gets demonstrated and tuned with no hardware on
+# the desk, so the C++ core and the Python simulator must not drift apart.
+# Nothing else in the tree notices when they do. This does.
 #
 # Both halves print the same report for the same grid of questions. The diff is
 # the whole assertion: no expected-output file to update, no assertions to keep

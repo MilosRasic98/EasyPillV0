@@ -2,9 +2,8 @@
 
 Prints exactly the report tests/parity/parity_driver.cpp prints, but computed
 with sim/easypill_sim.py's own scheduler. run_parity.sh diffs the two, so the
-diff IS the assertion: 28 of the 87 defects found in review were the firmware
-and the simulator quietly disagreeing, and nothing else in the tree notices
-when they drift apart again.
+diff IS the assertion, and nothing else in the tree notices when the firmware
+and the simulator drift apart.
 
 Keep the two writers in step: same questions, same order, same formatting.
 """

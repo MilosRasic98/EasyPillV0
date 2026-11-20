@@ -13,6 +13,10 @@ firmware/src/app/build_stamp.h
 # tracked template.
 firmware/include/wifi_default.h
 
+# Whatever was typed into the simulated GUI, Wi-Fi and notification settings
+# included. Written next to the simulator when it runs.
+sim/sim_state.json
+
 # Editor and OS scratch
 .vscode/
 .idea/
@@ -20,3 +24,7 @@ firmware/include/wifi_default.h
 ._*
 *.tmp
 *.bak
+
+# Python caches
+__pycache__/
+*.pyc

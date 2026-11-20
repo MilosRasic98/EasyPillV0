@@ -5,7 +5,7 @@ namespace {
 
 // Nominal amber is red at full with green at roughly 60 %. The 470 R series
 // resistors make this LED red-biased in practice, so expect to trim the green
-// up once a real LED is wired to CTL1 - see docs/HARDWARE.md section 6.
+// up once a real LED is wired to CTL1.
 constexpr uint8_t kAmberGreen = 150;
 
 constexpr uint32_t kPulsePeriodMs = 1000;  // ~1 Hz triangular ramp

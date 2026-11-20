@@ -3,8 +3,8 @@
 
     ~/.platformio/penv/bin/python tools/battery_wifi.py [host] [seconds]
 
-This is the one test the bench supply cannot answer. docs/HARDWARE.md 10.1
-predicts U11 trips at roughly 30 mA, which is less than a transmit burst
+This is the one test the bench supply cannot answer. On paper the battery
+protection (U11) trips at roughly 30 mA, which is less than a transmit burst
 draws, so the board would disconnect itself about 10 ms into the first TX.
 The hwtest handover only ever proved an idle board stays alive.
 
@@ -30,11 +30,13 @@ import time
 import urllib.error
 import urllib.request
 
-HOST = sys.argv[1] if len(sys.argv) > 1 else "192.168.1.38"
+# Pass the IP for a precise run: a cold mDNS lookup inside the poll loop
+# would read as the silence this test calls a protection trip.
+HOST = sys.argv[1] if len(sys.argv) > 1 else "easypill.local"
 SECONDS = float(sys.argv[2]) if len(sys.argv) > 2 else 120.0
 
 # Below this a single cell is about done; a sag past it under load is a
-# finding even if the board stays up. docs/HARDWARE.md 9.
+# finding even if the board stays up.
 VBAT_FLOOR_MV = 3300
 
 
@@ -136,7 +138,7 @@ def main():
     say("\n" + "-" * 68)
     if after is None:
         say("  FAILED. The box stopped answering after the scan: %s" % err)
-        say("  That is the protection trip docs/HARDWARE.md 10.1 predicts.")
+        say("  That is what the battery protection (U11) tripping under Wi-Fi load looks like.")
         sys.exit(1)
 
     up = after["uptimeS"]
@@ -163,8 +165,7 @@ def main():
         sys.exit(0)
     say("  PASSED. No reset, no dropouts%s, and the cell held at %d mV." %
         (", and the scan went through" if scan_ok else "", v))
-    say("  The ~30 mA protection trip predicted in docs/HARDWARE.md 10.1 did")
-    say("  not bite. Update that section with what actually happened.")
+    say("  The ~30 mA battery protection trip did not bite.")
 
 
 if __name__ == "__main__":

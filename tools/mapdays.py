@@ -125,8 +125,8 @@ def main():
             say("  open %s ..." % day.upper())
             moved = wait_for_change(base, OPEN_TIMEOUT_S)
             if moved is None:
-                say("  ! nothing moved in %d s. Lift it further, or that sensor is dead"
-                    " (docs/HARDWARE.md 3).\n" % OPEN_TIMEOUT_S)
+                say("  ! nothing moved in %d s. Lift it further, or that sensor is dead.\n"
+                    % OPEN_TIMEOUT_S)
                 continue
             if len(moved) > 1:
                 say("  ! %d sensors moved together (%s). One lid at a time - close them"

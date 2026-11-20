@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Build everything and run the host tests. This is the whole verification story
-# for a project whose hardware does not exist yet, so it is worth running often.
+# Build everything and run the host tests: everything that can be checked
+# without a board on the desk.
 #
 #   tools/check.sh            all four firmware targets + core unit tests
 #   tools/check.sh core       just the host unit tests (fast, no toolchain)

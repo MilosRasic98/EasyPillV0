@@ -1,4 +1,4 @@
-// Clock discipline without an RTC. See docs/HARDWARE.md section 8.
+// Clock discipline without an RTC.
 #include "timekeeper.h"
 
 #include <esp_sntp.h>
@@ -145,7 +145,7 @@ void timeBegin() {
   sntp_set_time_sync_notification_cb(onSntpSync);
 
   // A deep-sleep wake comes back with the clock still running: the RTC timer
-  // carried it through the sleep (docs/HARDWARE.md section 8), so what the chip
+  // carried it through the sleep, so what the chip
   // already has is strictly better than the NVS seed, which is the epoch at
   // sleep *entry*. Stepping back to the seed would rewind the clock by the whole
   // sleep, on every wake, forever. Only step when the chip is not holding a time

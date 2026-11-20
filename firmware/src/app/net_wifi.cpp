@@ -42,7 +42,7 @@ constexpr uint32_t kJoinTimeoutMs = 12000;
 // 2 s, 5 s, 15 s, then once a minute forever.
 constexpr uint32_t kBackoffMs[4] = {2000, 5000, 15000, 60000};
 
-// Failures before the setup AP comes up, per the spec in docs/API.md.
+// Failures before the setup AP comes up.
 constexpr uint8_t kFailsBeforeAp = 3;
 
 // If the AP is up but nobody is configuring the box, the station is worth

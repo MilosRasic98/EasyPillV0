@@ -1,8 +1,7 @@
-// EasyPill V1 board pin map.
+// EasyPill V0 board pin map.
 //
-// Derived from Schematic_EaSyPill_V1_2026-09-27.pdf. See docs/HARDWARE.md for
-// the reasoning behind every line in here; if the board is reworked, update
-// that document first.
+// Derived from the schematic in hardware/ (SCH_EaSyPill_V1_2026-11-11.pdf). If
+// the board is reworked, this is the file to update first.
 //
 // The XIAO silkscreen pins D0..D10 map to different GPIOs on the C3 and the S3,
 // so everything below goes through the Arduino variant macros and the same

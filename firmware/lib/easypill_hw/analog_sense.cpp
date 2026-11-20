@@ -61,7 +61,7 @@ void AnalogSense::sampleAll(uint32_t nowMs) {
 
   // The MCP73831's STAT is push-pull and low means "charging *or* no input",
   // with R37 pulling the Hi-Z done state low as well. Only the rails can tell
-  // those apart - docs/HARDWARE.md section 9.
+  // those apart.
   r_.charging = (r_.usbPresent || r_.coilPresent) && !r_.statHigh;
 
   r_.batteryPercent = lipoPercent(r_.vbatMv);
@@ -92,10 +92,9 @@ uint8_t AnalogSense::lipoPercent(uint16_t mv) {
   // is deliberately steep (4.2 V is barely above 4.1 V in charge terms) and the
   // knee below 3.6 V is where a cell really does fall off a cliff.
   //
-  // This table is the one the documented contract uses - docs/API.md gives
-  // vbatMv 3920 as percent 72, which is this curve and no other - and the
-  // simulator's LIPO_CURVE mirrors it so that a given voltage reads the same on
-  // the bench and in the GUI. Touch one and you must touch the other.
+  // The simulator's LIPO_CURVE mirrors this table so that a given voltage reads
+  // the same on the bench and in the GUI. Touch one and you must touch the
+  // other.
   struct Point {
     uint16_t mv;
     uint8_t  pct;

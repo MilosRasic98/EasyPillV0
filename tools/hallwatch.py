@@ -164,7 +164,7 @@ def main():
     else:
         print("\n  all seven sensors responded.")
     print("  If the sensor number did not match the day printed on the lid you lifted,")
-    print("  that pair goes in hallToLid - see docs/BRINGUP.md.")
+    print("  that pair goes in hallToLid (Settings > Hardware in the GUI, or run tools/mapdays.py).")
 
 
 if __name__ == "__main__":

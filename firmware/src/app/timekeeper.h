@@ -4,7 +4,6 @@
 // an approximate epoch from NVS at boot, mark it untrusted, sync SNTP the
 // moment Wi-Fi comes up, and measure how fast the internal RC oscillator is
 // running so the error can be corrected between syncs.
-// See docs/HARDWARE.md section 8.
 #pragma once
 
 #include "app_state.h"
