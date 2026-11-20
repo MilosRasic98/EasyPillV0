@@ -17,6 +17,8 @@ This project was originally created for the [Element14 Presents](https://www.you
 
 **MAIN VIDEO AND ELEMENT14 COMMUNITY BLOG - [CLICK HERE](https://community.element14.com/challenges-projects/element14-presents/b/projects/posts/has-grandma-taken-her-pills-this-esp32-pillbox-can-help-you-find-out?ICID=I-HP-has-grandma-taken-her-pills-this-esp32-EP741)**
 
+Printables link for CAD models: [CLICK HERE](https://www.printables.com/model/1922475-easypill-v0)
+
 ![Finished EasyPill V0 next to the original sketches](pictures/readme/IMG_4024.jpg)
 
 ## Idea and Plan
